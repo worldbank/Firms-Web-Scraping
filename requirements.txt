@@ -3,3 +3,4 @@ requests
 ply
 joblib
 textacy
+python-google-places
