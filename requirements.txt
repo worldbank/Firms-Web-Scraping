@@ -4,3 +4,5 @@ ply
 joblib
 textacy
 python-google-places
+dask
+dask[distributed]
