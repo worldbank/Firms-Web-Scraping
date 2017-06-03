@@ -1,6 +1,34 @@
 from googleplaces import GooglePlaces, types, lang
 from ApiKey import ApiKeys
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import (
+        create_engine,
+        Column,
+        ForeignKey,
+        Integer,
+        String,
+        )
 import time
+
+# DB, walk through http://docs.sqlalchemy.org/en/latest/orm/tutorial.html
+#   to get best practices
+#
+# also see: https://stackoverflow.com/questions/31394998/using-sqlalchemy-to-load-csv-file-into-a-database
+# laste comment on best practices for larger files
+#   catch is does COPY FROM support upsert type items
+class InputTable(Base):
+    """
+    """
+    def __init__(self, database_name="input"):
+        # check if .db file exists if not create (does create_engine doethis?)
+        # what type of database to back with?
+
+        # bind to the engine, call sessionmaker, get DBSession
+        pass
+
+
+
 
 # initalize Google Places API
 class GooglePlacesAccess(object):
@@ -64,3 +92,5 @@ class GooglePlacesAccess(object):
             ret['urls'].append(place.url)
 
         return ret
+
+
