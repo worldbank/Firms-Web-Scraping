@@ -9,7 +9,7 @@ from sqlalchemy import (
         Integer,
         String,
         )
-import time
+import time, datetime
 import pandas as pd
 import sys
 import os
@@ -39,8 +39,10 @@ class InputTable(object):
                  database_name="input.csv",
                  pushed="pushed.csv",
                  output="output.csv",
-                 data_root='./'):
+                 data_root='./',
+                 places_api=None):
         self.data_root = data_root
+        self.places_api = places_api
 
         if not os.path.isfile(output): # then create one, note this a basic output file, not production
             csv_output = pd.DataFrame(columns=['Business Name',
@@ -50,17 +52,17 @@ class InputTable(object):
                                                'Associated Products',
                                                'Source Urls',
                                                ])
-            csv_output.to_csv(output, index=False)
+            csv_output.to_csv(output, index=False, sep='\t')
 
         if not os.path.isfile(pushed): # then create one
             csv_pushed = pd.DataFrame(columns=['Business Name',
                                                'Region',
                                                'Overwrite'])
-            csv_pushed.to_csv(pushed, index=False)
+            csv_pushed.to_csv(pushed, index=False, sep='\t')
 
         file_path = os.path.join(self.data_root, database_name)
         if  os.path.isfile(file_path):
-            self.table = pd.read_csv(file_path)
+            self.table = pd.read_csv(file_path, sep='\t')
             # treat table as a LIFO queue, most recent copy of
             # bussiness name is kept
             self.table.drop_duplicates(subset=['Business Name',
@@ -72,8 +74,18 @@ class InputTable(object):
             raise FileNotFoundError(
                     errno.ENOENT, os.strerror(errno.ENOENT), file_path)
 
-    def default_push(self, business):
-        print(business)
+    def timing_pusher(self, business):
+        print(datetime.datetime.now()) # entered into call
+        print(business['Business Name'], business['Region'])
+
+    def default_pusher(self, business):
+        ret = None
+        results = self.places_api.get_results(business_name=business['Business Name'],
+                                              region=business['Region'],
+                                              types=[types.TYPE_FOOD])
+        relevant_places = self.places_api.get_relevant_places(results)
+        ret = self.places_api.get_place_websites(relevant_places)
+        return ret
 
     def push(self, pusher=None, output='output.csv', pushed='pushed.csv'):
         """
@@ -88,23 +100,29 @@ class InputTable(object):
         """
 
         if pusher == None:
-            pusher = self.default_push
+            pusher = self.default_pusher
 
         keys = ['Business Name', 'Region']
 
         for index, business in self.table.iterrows():
             # poll on pushed, output this is fast enough I believe
-            pushed = pd.read_csv(os.path.join(self.data_root, pushed))
-            output = pd.read_csv(os.path.join(self.data_root, output))
+            pushed = pd.read_csv(os.path.join(self.data_root, pushed), sep='\t')
+            output = pd.read_csv(os.path.join(self.data_root, output), sep='\t')
 
             # check that business does not exist in output or pushed by
             # checking keys. Note: There could be race conditions in here
             # but we assume we can poll magnitudes faster than data arrives
+            # and we know that within a session that pushed never removes information
+            # ... so I think we're mostly good here. Probably can't persist
+            # queries across shutdown though but that's okay we can redo it for cheap.
+            #
+            # note: if instead of .csv's we use a database these problems will go away
+            # but not needed at this moment to continue development
             if not all(any(output[key] == business[key]) for key in keys) and\
                not all(any(pushed[key] == business[key]) for key in keys):
                 # degelate to pusher
-                pusher(business) # should be an asynch call
-
+                time.sleep(1)
+                yield pusher(business) # currently, should be a blocking call, assume pusher rate limits
 
 # initalize Google Places API
 class GooglePlacesAccess(object):
@@ -136,6 +154,7 @@ class GooglePlacesAccess(object):
     def __init__(self, key=ApiKeys['Google Places']):
         self.places_api = GooglePlaces(ApiKeys['Google Places'])
 
+    # todo: requires rate limiting
     def get_results(self,
                     business_name,
                     region,
@@ -151,12 +170,14 @@ class GooglePlacesAccess(object):
 
         return results
 
+    # todo: requires rate limiting on loop
     def get_relevant_places(self, results):
         ret = []
         for place in results.places:
             if True: # WIP: check if place is actually relevant, should only be 2 at max
-                place.get_details() # side effect, calls Google API
                 time.sleep(1) # note: when rate limitating is implemented, no longer needed
+
+                place.get_details() # side effect, calls Google API
                 ret.append(place)
 
         return ret
@@ -169,4 +190,11 @@ class GooglePlacesAccess(object):
 
         return ret
 
+"""
+Example usage:
 
+    mygoogle = utils.GooglePlacesAccess()
+    mytable = utils.InputTable(places_api=mygoogle)
+    # returns per row associated websites to a given business in InputTable
+    k = list(mytable.push())
+"""
