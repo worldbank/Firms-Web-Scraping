@@ -82,7 +82,7 @@ class InputTable(object):
         ret = None
         results = self.places_api.get_results(business_name=business['Business Name'],
                                               region=business['Region'],
-                                              types=[types.TYPE_FOOD])
+                                              types=None)
         relevant_places = self.places_api.get_relevant_places(results)
         ret = self.places_api.get_place_websites(relevant_places)
         return ret
