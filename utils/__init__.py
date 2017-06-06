@@ -23,7 +23,7 @@ import errno
 #   catch is does COPY FROM support upsert type items
 
 # For now let's just use a Panads read from .csv
-class InputTable(Base):
+class InputTable(object):
     """
     Map an input.csv to the project database (helps to track
     businesses processed, input/outputs, etc.)
@@ -35,11 +35,30 @@ class InputTable(Base):
     local database to more easily capture statistics and
     manage input data flow.
     """
-    def __init__(self, database_name="input.csv", pushed="pushed.csv"):
-        if not os.path.isfile(pushed): # then create one
-            open.(os.path.join('./', pushed), 'a').close()
+    def __init__(self,
+                 database_name="input.csv",
+                 pushed="pushed.csv",
+                 output="output.csv",
+                 data_root='./'):
+        self.data_root = data_root
 
-        file_path = os.path.join('..', database_name)
+        if not os.path.isfile(output): # then create one, note this a basic output file, not production
+            csv_output = pd.DataFrame(columns=['Business Name',
+                                               'Region',
+                                               'Overwrite',
+                                               'Associated Agents',
+                                               'Associated Products',
+                                               'Source Urls',
+                                               ])
+            csv_output.to_csv(output, index=False)
+
+        if not os.path.isfile(pushed): # then create one
+            csv_pushed = pd.DataFrame(columns=['Business Name',
+                                               'Region',
+                                               'Overwrite'])
+            csv_pushed.to_csv(pushed, index=False)
+
+        file_path = os.path.join(self.data_root, database_name)
         if  os.path.isfile(file_path):
             self.table = pd.read_csv(file_path)
             # treat table as a LIFO queue, most recent copy of
@@ -53,33 +72,39 @@ class InputTable(Base):
             raise FileNotFoundError(
                     errno.ENOENT, os.strerror(errno.ENOENT), file_path)
 
-        def push(self, pusher, output='output.csv', pushed='pushed.csv'):
-            """
-            Push a given set of output (if not string, then a dataframe)
-            downstream in order to collect business information on the input.
+    def default_push(self, business):
+        print(business)
 
-            Can use custom `pusher` if an alternative set of logic
-            should be used.
+    def push(self, pusher=None, output='output.csv', pushed='pushed.csv'):
+        """
+        Push a given set of output (if not string, then a dataframe)
+        downstream in order to collect business information on the input.
 
-            Checks for race conditions (pushing something twice because
-            it hasn't completed between calls) against a pushed table by polling
-            """
+        Can use custom `pusher` if an alternative set of logic
+        should be used.
 
-            keys = ['Business Name', 'Region']
+        Checks for race conditions (pushing something twice because
+        it hasn't completed between calls) against a pushed table by polling
+        """
 
-            for business in self.table.iterrows():
-                # poll on pushed, output this is fast enough I believe
-                pushed = pd.read_csv(os.path.join('./', pushed))
-                output = pd.read_csv(os.path.join('../', output))
+        if pusher == None:
+            pusher = self.default_push
 
-                # check that business does not exist in output or pushed by
-                # checking keys
-                if not all(
-                        (any(output[key] == business[key]) for key in keys)) and
-                   not all(
-                        (any(pushed[key] == business[key]) for key in keys)):
-                    # degelate to pusher
-                    pusher(business) # should be an asynch call
+        keys = ['Business Name', 'Region']
+
+        for index, business in self.table.iterrows():
+            # poll on pushed, output this is fast enough I believe
+            pushed = pd.read_csv(os.path.join(self.data_root, pushed))
+            output = pd.read_csv(os.path.join(self.data_root, output))
+
+            # check that business does not exist in output or pushed by
+            # checking keys. Note: There could be race conditions in here
+            # but we assume we can poll magnitudes faster than data arrives
+            if not all(any(output[key] == business[key]) for key in keys) and\
+               not all(any(pushed[key] == business[key]) for key in keys):
+                # degelate to pusher
+                pusher(business) # should be an asynch call
+
 
 # initalize Google Places API
 class GooglePlacesAccess(object):

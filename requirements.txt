@@ -1,4 +1,5 @@
 boto3
+pandas
 requests
 ply
 joblib
