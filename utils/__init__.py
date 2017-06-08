@@ -197,4 +197,7 @@ Example usage:
     mytable = utils.InputTable(places_api=mygoogle)
     # returns per row associated websites to a given business in InputTable
     k = list(mytable.push())
+
+    # do something interesting with `k`, like feed it to MTurk/Crowdflower or
+    # to an active online classifier...
 """
