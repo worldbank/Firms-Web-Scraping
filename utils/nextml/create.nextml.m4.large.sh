@@ -6,13 +6,13 @@
 #
 # This script should help take care of all of that
 
-source ../../ApiKeys/aws_EC2_keys.sh
+source ../../ApiKey/aws_EC2_keys.sh
 # NextML is still being ported to Python 3, needs Python 2 for
 # its management scripts
 source /hdd/nextml_env_py2/bin/activate # set up the python 2 virtual env
 
 # run ec2 set up script, capture last line for the bucket name, export bucket name
-# (source tmp) and remove the temporary file.
-python next_ec2.py --region=$EC2_REGION --instance-type=$EC2_INSTANCE --key-pair=$KEY_PAIR --identity-file=$KEY_FILE createbucket $EC2_CLUSTER_NAME | tail -1 > tmp
+# (source tmp) and remove the temporary file. Requires NEXT be checked out.
+python /hdd/NEXT/ec2/next_ec2.py --region=$EC2_REGION --instance-type=$EC2_INSTANCE --key-pair=$KEY_PAIR --identity-file=$KEY_FILE createbucket $EC2_CLUSTER_NAME | tail -1 > tmp
 source tmp
 rm -f tmp
