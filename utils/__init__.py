@@ -14,6 +14,7 @@ import requests
 import pandas as pd
 import re
 import time, datetime
+import itertools
 import sys
 import os
 import errno
@@ -160,49 +161,60 @@ class InputTable(object):
                 time.sleep(1)
                 yield pusher(business) # currently, should be a blocking call, assume pusher rate limits
 
-def get_website_features(url, n_keyterms=0.05):
-    ret = None
-    html = requests.get(url).text
-    text = get_text(html)
+class WebsiteBagOfKeyphrases(object):
+    def __init__(self, n_keyterms=0.05, url=None):
+        self.n_keyterms = n_keyterms
+        self.url = url
 
-    processed_text = textacy.preprocess.preprocess_text(text,
-                                                        lowercase=True,
-                                                        no_urls=True,
-                                                        no_emails=True,
-                                                        no_phone_numbers=True,
-                                                        no_currency_symbols=True,
-                                                        no_punct=True)
+    def reduce_keyphrases(list_keyphrases):
+        return itertools.chain.from_iterable((element.split() for element in list_keyphrases))
 
-    doc = textacy.Doc(processed_text,
-                      metadata={'url':url,
-                                'datetime':str(datetime.datetime.utcnow())})
+    def get_website_features(self, url=None, n_keyterms=None):
+        if not n_keyterms:
+            n_keyterms = self.n_keyterms
 
-    keyphrases = textacy.keyterms.singlerank(doc, n_keyterms=n_keyterms)
+        if not url:
+            url = self.url
 
-    return (element[0] for element in keyphrases)
+        html = requests.get(url).text
+        text = self.get_text(html)
 
-def get_text(html):
-    """
-    Copied from NLTK package.
-    Remove HTML markup from the given string.
+        processed_text = textacy.preprocess.preprocess_text(text,
+                                                            lowercase=True,
+                                                            no_urls=True,
+                                                            no_emails=True,
+                                                            no_phone_numbers=True,
+                                                            no_currency_symbols=True,
+                                                            no_punct=True)
 
-    see: https://stackoverflow.com/questions/26002076/python-nltk-clean-html-not-implemented
-    for more details
-    """
+        doc = textacy.Doc(processed_text)
 
-    # First we remove inline JavaScript/CSS:
-    cleaned = re.sub(r"(?is)<(script|style).*?>.*?(</\1>)", "", html.strip())
-    # Then we remove html comments. This has to be done before removing regular
-    # tags since comments can contain '>' characters.
-    cleaned = re.sub(r"(?s)<!--(.*?)-->[\n]?", "", cleaned)
-    # Next we can remove the remaining tags:
-    cleaned = re.sub(r"(?s)<.*?>", " ", cleaned)
-    # Finally, we deal with whitespace
-    cleaned = re.sub(r"&nbsp;", " ", cleaned)
-    cleaned = re.sub(r"\n", "", cleaned) # added to strip newlines
-    cleaned = re.sub(r"  ", " ", cleaned)
-    cleaned = re.sub(r"  ", " ", cleaned)
-    return cleaned.strip()
+        keyphrases = textacy.keyterms.singlerank(doc, n_keyterms=n_keyterms)
+
+        return (element[0] for element in keyphrases)
+
+    def get_text(self, html):
+        """
+        Copied from NLTK package.
+        Remove HTML markup from the given string.
+
+        see: https://stackoverflow.com/questions/26002076/python-nltk-clean-html-not-implemented
+        for more details
+        """
+
+        # First we remove inline JavaScript/CSS:
+        cleaned = re.sub(r"(?is)<(script|style).*?>.*?(</\1>)", "", html.strip())
+        # Then we remove html comments. This has to be done before removing regular
+        # tags since comments can contain '>' characters.
+        cleaned = re.sub(r"(?s)<!--(.*?)-->[\n]?", "", cleaned)
+        # Next we can remove the remaining tags:
+        cleaned = re.sub(r"(?s)<.*?>", " ", cleaned)
+        # Finally, we deal with whitespace
+        cleaned = re.sub(r"&nbsp;", " ", cleaned)
+        cleaned = re.sub(r"\n", " ", cleaned) # added to strip newlines
+        cleaned = re.sub(r"  ", " ", cleaned)
+        cleaned = re.sub(r"  ", " ", cleaned)
+        return cleaned.strip()
 
 # initalize Google Places API
 class GooglePlacesAccess(object):
