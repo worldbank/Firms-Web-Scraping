@@ -9,6 +9,11 @@ from sqlalchemy import (
         Integer,
         String,
         )
+import requests
+import re
+import nltk # for cleaning html, faster/better than BS or Scrapy
+from bs4 import BeautifulSoup
+import scrapy
 import time, datetime
 import pandas as pd
 import sys
@@ -156,6 +161,33 @@ class InputTable(object):
                 # degelate to pusher
                 time.sleep(1)
                 yield pusher(business) # currently, should be a blocking call, assume pusher rate limits
+
+def get_website_features(url):
+    html = requests.get(url).text
+    text = get_text(html)
+
+def get_text(html):
+    """
+    Copied from NLTK package.
+    Remove HTML markup from the given string.
+
+    see: https://stackoverflow.com/questions/26002076/python-nltk-clean-html-not-implemented
+    for more details
+    """
+
+    # First we remove inline JavaScript/CSS:
+    cleaned = re.sub(r"(?is)<(script|style).*?>.*?(</\1>)", "", html.strip())
+    # Then we remove html comments. This has to be done before removing regular
+    # tags since comments can contain '>' characters.
+    cleaned = re.sub(r"(?s)<!--(.*?)-->[\n]?", "", cleaned)
+    # Next we can remove the remaining tags:
+    cleaned = re.sub(r"(?s)<.*?>", " ", cleaned)
+    # Finally, we deal with whitespace
+    cleaned = re.sub(r"&nbsp;", " ", cleaned)
+    cleaned = re.sub(r"\n", "", cleaned) # added to strip newlines
+    cleaned = re.sub(r"  ", " ", cleaned)
+    cleaned = re.sub(r"  ", " ", cleaned)
+    return cleaned.strip()
 
 # initalize Google Places API
 class GooglePlacesAccess(object):

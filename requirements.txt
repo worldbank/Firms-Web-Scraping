@@ -6,5 +6,4 @@ joblib
 textacy
 python-google-places
 sqlalchemy
-dask
-dask[distributed]
+scrapy
