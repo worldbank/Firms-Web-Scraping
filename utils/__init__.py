@@ -89,7 +89,16 @@ class InputTable(object):
 
     def default_feature_pusher(self, business, feature_func=None):
         """
-        Gets website "features" (keyphrases, text, etc) as well as pulls website.
+        Gets website "features" (keyphrases, text, etc) as well as pulls website
+        address. Gathers data for the rest of the system.
+
+        Simple explanation: returns data for "pushing" features, relevant websites
+        to the rest of the system.
+
+        Extract website features, used for follow on human manual check, for
+        active learning task training and, finally, for task prediction
+        (both task training and prediction happen at the same time under the
+        active learning paradigm)
         """
         if not feature_func:
             feature_func = self.get_website_features
@@ -99,18 +108,17 @@ class InputTable(object):
                                               region=business['Region'],
                                               types=None)
 
-        # extract website features, used for follow on human manual check, for
-        # active learning task training and, finally, for task prediction
-        # (both task training and prediction happen at the same time under the
-        # active learning paradigm)
+        # so that get_website_features can iterate over a simple list of webite, url links
+        results = self.places_api.get_place_websites(results)
+
+        features = self.get_website_features(results)
 
         relevant_places = self.places_api.get_relevant_places(results)
         ret = self.places_api.get_place_websites(relevant_places)
-        return ret
+        return self.get_website_features(ret) # would a decorator be 'neater'?
 
-    def get_website_features(self):
+    def get_website_features(self, results):
         pass
-
 
     def push(self, pusher=None, output='output.csv', pushed='pushed.csv'):
         """
@@ -137,7 +145,7 @@ class InputTable(object):
             # check that business does not exist in output or pushed by
             # checking keys. Note: There could be race conditions in here
             # but we assume we can poll magnitudes faster than data arrives
-            # and we know that within a session that pushed never removes information
+            # and we know that within a session that information is never removed.
             # ... so I think we're mostly good here. Probably can't persist
             # queries across shutdown though but that's okay we can redo it for cheap.
             #
