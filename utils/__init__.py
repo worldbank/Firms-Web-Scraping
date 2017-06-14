@@ -87,6 +87,22 @@ class InputTable(object):
         ret = self.places_api.get_place_websites(relevant_places)
         return ret
 
+    def default_feature_pusher(self, business):
+        """
+        Gets website "features" (keyphrases, text, etc) as well as pulls website.
+        """
+        ret = None
+        results = self.places_api.get_results(business_name=business['Business Name'],
+                                              region=business['Region'],
+                                              types=None)
+        relevant_places = self.places_api.get_relevant_places(results)
+        ret = self.places_api.get_place_websites(relevant_places)
+        return ret
+
+    def get_website_features(self):
+        pass
+
+
     def push(self, pusher=None, output='output.csv', pushed='pushed.csv'):
         """
         Push a given set of output (if not string, then a dataframe)
