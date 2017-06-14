@@ -96,7 +96,7 @@ class InputTable(object):
         ret = self.places_api.get_place_websites(relevant_places)
         return ret
 
-    def default_feature_pusher(self, business, feature_func=None):
+    def feature_pusher(self, business, feature_func=None):
         """
         Gets website "features" (keyphrases, text, etc) as well as pulls website
         address. Gathers data for the rest of the system.
@@ -114,20 +114,18 @@ class InputTable(object):
                                               region=business['Region'],
                                               types=None)
 
-        # so that get_website_features can iterate over a simple list of webite, url links
         results = self.places_api.get_place_websites(results)
+        dict_results = self.places_api.to_dict(results)
 
-        features = self.get_website_features(results)
+        websites = ({'features': list(featurizer.get_website_features(site)),
+                     'site': site,
+                     'utc_timestamp': str(datetime.datetime.utcnow())}
+                         for site in results['urls'])
 
-        relevant_places = self.places_api.get_relevant_places(results)
-        ret = self.places_api.get_place_websites(relevant_places)
+        relevant_websites = None # self.relevant_websites(task='predict')# calls lastest learner
+        #self.relevant_websites(task='learn') # push to NextML
 
-        return ret
-
-        # todo: finish this expression, essentially generate a set of website features
-        return [{'features': list(featurizer.get_website_features(site)),
-             'site':}]
-        #return self.featurizer(ret) # would a decorator be 'neater'?
+        return relevant_websites
 
     def push(self, pusher=None, output='output.csv', pushed='pushed.csv'):
         """
@@ -268,7 +266,7 @@ class GooglePlacesAccess(object):
         return results
 
     # todo: requires rate limiting on loop
-    def get_relevant_places(self, results):
+    def get_place_websites(self, results):
         ret = []
         for place in results.places:
             if True: # WIP: check if place is actually relevant, should only be 2 at max
@@ -279,7 +277,7 @@ class GooglePlacesAccess(object):
 
         return ret
 
-    def get_place_websites(self, relevant_places):
+    def to_dict(self, relevant_places):
         ret = {'websites':[], 'urls':[]}
         for place in relevant_places:
             ret['websites'].append(place.website)
