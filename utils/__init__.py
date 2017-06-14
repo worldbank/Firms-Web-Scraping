@@ -9,13 +9,11 @@ from sqlalchemy import (
         Integer,
         String,
         )
+import textacy
 import requests
-import re
-import nltk # for cleaning html, faster/better than BS or Scrapy
-from bs4 import BeautifulSoup
-import scrapy
-import time, datetime
 import pandas as pd
+import re
+import time, datetime
 import sys
 import os
 import errno
@@ -162,9 +160,26 @@ class InputTable(object):
                 time.sleep(1)
                 yield pusher(business) # currently, should be a blocking call, assume pusher rate limits
 
-def get_website_features(url):
+def get_website_features(url, n_keyterms=0.05):
+    ret = None
     html = requests.get(url).text
     text = get_text(html)
+
+    processed_text = textacy.preprocess.preprocess_text(text,
+                                                        lowercase=True,
+                                                        no_urls=True,
+                                                        no_emails=True,
+                                                        no_phone_numbers=True,
+                                                        no_currency_symbols=True,
+                                                        no_punct=True)
+
+    doc = textacy.Doc(processed_text,
+                      metadata={'url':url,
+                                'datetime':str(datetime.datetime.utcnow())})
+
+    keyphrases = textacy.keyterms.singlerank(doc, n_keyterms=n_keyterms)
+
+    return (element[0] for element in keyphrases)
 
 def get_text(html):
     """
