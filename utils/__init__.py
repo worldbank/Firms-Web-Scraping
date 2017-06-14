@@ -44,9 +44,14 @@ class InputTable(object):
                  pushed="pushed.csv",
                  output="output.csv",
                  data_root='./',
-                 places_api=None):
+                 places_api=None,
+                 featurizer=None):
         self.data_root = data_root
         self.places_api = places_api
+        self.featurizer = featurizer
+
+        if not self.featurizer:
+            self.featurizer = WebsiteBagOfKeyphrases()
 
         if not os.path.isfile(output): # then create one, note this a basic output file, not production
             csv_output = pd.DataFrame(columns=['Business Name',
@@ -96,16 +101,13 @@ class InputTable(object):
         Gets website "features" (keyphrases, text, etc) as well as pulls website
         address. Gathers data for the rest of the system.
 
-        Simple explanation: returns data for "pushing" features, relevant websites
-        to the rest of the system.
-
         Extract website features, used for follow on human manual check, for
         active learning task training and, finally, for task prediction
         (both task training and prediction happen at the same time under the
         active learning paradigm)
         """
         if not feature_func:
-            feature_func = self.get_website_features
+            feature_func = self.featurizer
 
         ret = None
         results = self.places_api.get_results(business_name=business['Business Name'],
@@ -119,10 +121,13 @@ class InputTable(object):
 
         relevant_places = self.places_api.get_relevant_places(results)
         ret = self.places_api.get_place_websites(relevant_places)
-        return self.get_website_features(ret) # would a decorator be 'neater'?
 
-    def get_website_features(self, results):
-        pass
+        return ret
+
+        # todo: finish this expression, essentially generate a set of website features
+        return [{'features': list(featurizer.get_website_features(site)),
+             'site':}]
+        #return self.featurizer(ret) # would a decorator be 'neater'?
 
     def push(self, pusher=None, output='output.csv', pushed='pushed.csv'):
         """
@@ -169,6 +174,29 @@ class WebsiteBagOfKeyphrases(object):
     def reduce_keyphrases(list_keyphrases):
         return itertools.chain.from_iterable((element.split() for element in list_keyphrases))
 
+    def get_text(self, html):
+        """
+        Copied from NLTK package.
+        Remove HTML markup from the given string.
+
+        see: https://stackoverflow.com/questions/26002076/python-nltk-clean-html-not-implemented
+        for more details
+        """
+
+        # First we remove inline JavaScript/CSS:
+        cleaned = re.sub(r"(?is)<(script|style).*?>.*?(</\1>)", "", html.strip())
+        # Then we remove html comments. This has to be done before removing regular
+        # tags since comments can contain '>' characters.
+        cleaned = re.sub(r"(?s)<!--(.*?)-->[\n]?", "", cleaned)
+        # Next we can remove the remaining tags:
+        cleaned = re.sub(r"(?s)<.*?>", " ", cleaned)
+        # Finally, we deal with whitespace
+        cleaned = re.sub(r"&nbsp;", " ", cleaned)
+        cleaned = re.sub(r"\n", " ", cleaned) # added to strip newlines
+        cleaned = re.sub(r"  ", " ", cleaned)
+        cleaned = re.sub(r"  ", " ", cleaned)
+        return cleaned.strip()
+
     def get_website_features(self, url=None, n_keyterms=None):
         if not n_keyterms:
             n_keyterms = self.n_keyterms
@@ -192,29 +220,6 @@ class WebsiteBagOfKeyphrases(object):
         keyphrases = textacy.keyterms.singlerank(doc, n_keyterms=n_keyterms)
 
         return (element[0] for element in keyphrases)
-
-    def get_text(self, html):
-        """
-        Copied from NLTK package.
-        Remove HTML markup from the given string.
-
-        see: https://stackoverflow.com/questions/26002076/python-nltk-clean-html-not-implemented
-        for more details
-        """
-
-        # First we remove inline JavaScript/CSS:
-        cleaned = re.sub(r"(?is)<(script|style).*?>.*?(</\1>)", "", html.strip())
-        # Then we remove html comments. This has to be done before removing regular
-        # tags since comments can contain '>' characters.
-        cleaned = re.sub(r"(?s)<!--(.*?)-->[\n]?", "", cleaned)
-        # Next we can remove the remaining tags:
-        cleaned = re.sub(r"(?s)<.*?>", " ", cleaned)
-        # Finally, we deal with whitespace
-        cleaned = re.sub(r"&nbsp;", " ", cleaned)
-        cleaned = re.sub(r"\n", " ", cleaned) # added to strip newlines
-        cleaned = re.sub(r"  ", " ", cleaned)
-        cleaned = re.sub(r"  ", " ", cleaned)
-        return cleaned.strip()
 
 # initalize Google Places API
 class GooglePlacesAccess(object):
