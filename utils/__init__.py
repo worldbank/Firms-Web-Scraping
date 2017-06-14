@@ -87,14 +87,23 @@ class InputTable(object):
         ret = self.places_api.get_place_websites(relevant_places)
         return ret
 
-    def default_feature_pusher(self, business):
+    def default_feature_pusher(self, business, feature_func=None):
         """
         Gets website "features" (keyphrases, text, etc) as well as pulls website.
         """
+        if not feature_func:
+            feature_func = self.get_website_features
+
         ret = None
         results = self.places_api.get_results(business_name=business['Business Name'],
                                               region=business['Region'],
                                               types=None)
+
+        # extract website features, used for follow on human manual check, for
+        # active learning task training and, finally, for task prediction
+        # (both task training and prediction happen at the same time under the
+        # active learning paradigm)
+
         relevant_places = self.places_api.get_relevant_places(results)
         ret = self.places_api.get_place_websites(relevant_places)
         return ret
