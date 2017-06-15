@@ -12,6 +12,8 @@ from sqlalchemy import (
 import textacy
 import requests
 import pandas as pd
+import logging
+import json
 import re
 import time, datetime
 import itertools
@@ -45,13 +47,18 @@ class InputTable(object):
                  output="output.csv",
                  data_root='./',
                  places_api=None,
-                 featurizer=None):
+                 featurizer=None,
+                 sink_func=None):
         self.data_root = data_root
         self.places_api = places_api
         self.featurizer = featurizer
+        self.sink_func = sink_func
 
         if not self.featurizer:
             self.featurizer = WebsiteBagOfKeyphrases()
+
+        if not self.sink_func:
+            self.sink_func = JsonSink()
 
         if not os.path.isfile(output): # then create one, note this a basic output file, not production
             csv_output = pd.DataFrame(columns=['Business Name',
@@ -83,11 +90,11 @@ class InputTable(object):
             raise FileNotFoundError(
                     errno.ENOENT, os.strerror(errno.ENOENT), file_path)
 
-    def timing_pusher(self, business):
+    def timing_getter(self, business):
         print(datetime.datetime.now()) # entered into call
         print(business['Business Name'], business['Region'])
 
-    def default_pusher(self, business):
+    def default_getter(self, business):
         ret = None
         results = self.places_api.get_results(business_name=business['Business Name'],
                                               region=business['Region'],
@@ -96,7 +103,7 @@ class InputTable(object):
         ret = self.places_api.get_place_websites(relevant_places)
         return ret
 
-    def feature_pusher(self, business, feature_func=None):
+    def feature_getter(self, business, feature_func=None):
         """
         Gets website "features" (keyphrases, text, etc) as well as pulls website
         address. Gathers data for the rest of the system.
@@ -110,11 +117,14 @@ class InputTable(object):
             feature_func = self.featurizer
 
         def website_features(dict_results, feature_func=feature_func, key='websites'):
+            ret = []
             for url in dict_results[key]:
                 if url and url != 'None': # todo: fix dict_results from returning 'None'
-                    yield {'features': feature_func.get_website_features(url=url),
-                           'website': url,
-                           'utc_timestamp': str(datetime.datetime.utcnow())}
+                    # note this could be multi threaded for speed up; feature_func is kinda slow
+                    ret.append( {'features': feature_func.get_website_features(url=url),
+                                 'website': url,
+                                 'utc_timestamp': str(datetime.datetime.utcnow())} )
+            return ret
 
         results = self.places_api.get_results(business_name=business['Business Name'],
                                               region=business['Region'],
@@ -125,42 +135,61 @@ class InputTable(object):
 
         return website_features(dict_results)
 
-    def push(self, pusher=None, output='output.csv', pushed='pushed.csv'):
+    def push(self,
+             sink=None,
+             getter=None,
+             output='output.csv',
+             pushed='pushed.csv'):
         """
-        Push a given set of output (if not string, then a dataframe)
-        downstream in order to collect business information on the input.
+        Push a given set of output as defined by getter over self.input to sink
 
-        Can use custom `pusher` if an alternative set of logic
+        Can use custom `getter` if an alternative set of logic
         should be used.
 
         Checks for race conditions (pushing something twice because
-        it hasn't completed between calls) against a pushed table by polling
+        it hasn't completed between calls) by pollin gatinst pushed, output tables
         """
+        def pull(pushed=pushed,
+                 output=output,
+                 getter=getter,
+                 sink=sink):
+            """
+            Pulls business related data, features, to supply to the sink function.
+            Typically we just write out the business data aquired from Google Places to disk.
 
-        if pusher == None:
-            pusher = self.default_pusher
+            Made this into an inner function to simplfy the driving logic of `push`
+            """
+            if not getter:
+                getter = self.default_getter
 
-        keys = ['Business Name', 'Region']
 
-        for index, business in self.table.iterrows():
-            # poll on pushed, output this is fast enough I believe
-            pushed = pd.read_csv(os.path.join(self.data_root, pushed), sep='\t')
-            output = pd.read_csv(os.path.join(self.data_root, output), sep='\t')
+            keys = ['Business Name', 'Region']
 
-            # check that business does not exist in output or pushed by
-            # checking keys. Note: There could be race conditions in here
-            # but we assume we can poll magnitudes faster than data arrives
-            # and we know that within a session that information is never removed.
-            # ... so I think we're mostly good here. Probably can't persist
-            # queries across shutdown though but that's okay we can redo it for cheap.
-            #
-            # note: if instead of .csv's we use a database these problems will go away
-            # but not needed at this moment to continue development
-            if not all(any(output[key] == business[key]) for key in keys) and\
-               not all(any(pushed[key] == business[key]) for key in keys):
-                # degelate to pusher
-                time.sleep(1)
-                yield pusher(business) # currently, should be a blocking call, assume pusher rate limits
+            for index, business in self.table.iterrows():
+                # check that business does not exist in output or pushed by
+                # checking keys.
+                #
+                # Note: There could be race conditions in here but I don't think
+                # Firm Web Scraping runs fast enough for it really happen.
+                # e.g., (~300/(30*24) bussines/hour vs. millsecond polling)
+                pushed = pd.read_csv(os.path.join(self.data_root, pushed), sep='\t')
+                output = pd.read_csv(os.path.join(self.data_root, output), sep='\t')
+
+                # note: could use a real database, would elminate this problem
+                if not all(any(output[key] == business[key]) for key in keys) and\
+                   not all(any(pushed[key] == business[key]) for key in keys):
+                    # degelate to getter
+                    time.sleep(1)
+                    yield business # yielding allows us to have relatively constant memory
+
+        if not sink:
+            sink = self.sink_func
+
+        for data in pull():
+            for to_json in getter(data):
+                sink.write(to_json)
+
+        return
 
 class WebsiteBagOfKeyphrases(object):
     def __init__(self, n_keyterms=0.05, url=None):
@@ -283,14 +312,40 @@ class GooglePlacesAccess(object):
 
         return ret
 
+class JsonSink(object):
+    """
+    A simple class for writing json data across multi threads safely
+    to a single file. Basically an instance of logging.getLogger
+    with defined constants.
+    """
+    def __init__(self, log_name="Feature Sink", file_name="sink.json.intermediate"):
+        self.log_name = log_name
+        self.file_name = file_name
+
+        self.logger = logging.getLogger(self.log_name)
+        self.logger.setLevel(logging.INFO)
+
+        self.file_handler = logging.FileHandler(file_name)
+        self.file_handler.setLevel(logging.INFO)
+
+        formatter = logging.Formatter('%(message)s') # only take messages
+
+        self.logger.addHandler(self.file_handler)
+
+    def write(self, to_json):
+        """
+        Write one line of json
+        """
+        self.logger.info(json.dumps(to_json))
+
 """
 Example usage:
 
     mygoogle = utils.GooglePlacesAccess()
     mytable = utils.InputTable(places_api=mygoogle)
     # returns per row associated websites to a given business in InputTable
-    k = list(mytable.push())
+    mytable.push(getter=mytable.feature_getter) # look at `sink.json.intermediate`
 
-    # do something interesting with `k`, like feed it to MTurk/Crowdflower or
+    # do something interesting with `sink.json.intermediate`, like feed it to MTurk/Crowdflower or
     # to an active online classifier...
 """
