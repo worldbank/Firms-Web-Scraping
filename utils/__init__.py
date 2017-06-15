@@ -109,6 +109,13 @@ class InputTable(object):
         if not feature_func:
             feature_func = self.featurizer
 
+        def website_features(dict_results, feature_func=feature_func, key='websites'):
+            for url in dict_results[key]:
+                if url and url != 'None': # todo: fix dict_results from returning 'None'
+                    yield {'features': feature_func.get_website_features(url=url),
+                           'website': url,
+                           'utc_timestamp': str(datetime.datetime.utcnow())}
+
         ret = None
         results = self.places_api.get_results(business_name=business['Business Name'],
                                               region=business['Region'],
@@ -117,15 +124,7 @@ class InputTable(object):
         results = self.places_api.get_place_websites(results)
         dict_results = self.places_api.to_dict(results)
 
-        websites = ({'features': list(featurizer.get_website_features(site)),
-                     'site': site,
-                     'utc_timestamp': str(datetime.datetime.utcnow())}
-                         for site in results['urls'])
-
-        relevant_websites = None # self.relevant_websites(task='predict')# calls lastest learner
-        #self.relevant_websites(task='learn') # push to NextML
-
-        return relevant_websites
+        return website_features(dict_results)
 
     def push(self, pusher=None, output='output.csv', pushed='pushed.csv'):
         """
@@ -170,7 +169,8 @@ class WebsiteBagOfKeyphrases(object):
         self.url = url
 
     def reduce_keyphrases(list_keyphrases):
-        return itertools.chain.from_iterable((element.split() for element in list_keyphrases))
+        return itertools.chain.from_iterable((element.split()\
+                for element in list_keyphrases))
 
     def get_text(self, html):
         """
@@ -195,7 +195,7 @@ class WebsiteBagOfKeyphrases(object):
         cleaned = re.sub(r"  ", " ", cleaned)
         return cleaned.strip()
 
-    def get_website_features(self, url=None, n_keyterms=None):
+    def get_website_features(self, lang="en", url=None, n_keyterms=None):
         if not n_keyterms:
             n_keyterms = self.n_keyterms
 
@@ -213,11 +213,11 @@ class WebsiteBagOfKeyphrases(object):
                                                             no_currency_symbols=True,
                                                             no_punct=True)
 
-        doc = textacy.Doc(processed_text)
+        doc = textacy.Doc(processed_text, lang=lang)
 
         keyphrases = textacy.keyterms.singlerank(doc, n_keyterms=n_keyterms)
 
-        return (element[0] for element in keyphrases)
+        return [element[0] for element in keyphrases] # use () for generator if desired
 
 # initalize Google Places API
 class GooglePlacesAccess(object):
@@ -269,11 +269,10 @@ class GooglePlacesAccess(object):
     def get_place_websites(self, results):
         ret = []
         for place in results.places:
-            if True: # WIP: check if place is actually relevant, should only be 2 at max
-                time.sleep(1) # note: when rate limitating is implemented, no longer needed
+            time.sleep(1) # note: when rate limitating is implemented, no longer needed
 
-                place.get_details() # side effect, calls Google API
-                ret.append(place)
+            place.get_details() # side effect, calls Google API
+            ret.append(place)
 
         return ret
 
