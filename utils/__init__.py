@@ -116,7 +116,6 @@ class InputTable(object):
                            'website': url,
                            'utc_timestamp': str(datetime.datetime.utcnow())}
 
-        ret = None
         results = self.places_api.get_results(business_name=business['Business Name'],
                                               region=business['Region'],
                                               types=None)
