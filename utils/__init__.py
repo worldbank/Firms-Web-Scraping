@@ -249,16 +249,23 @@ class WebsiteRawTokensWithTaggedBizRegion(object):
 
         return text.split()
 
-    def get_website_features(self, url=None):
+    def get_website_features(self, url=None, business_name=None, region=None):
         if not url:
             url = self.url
+        if not business_name:
+            business_name = self.business_name
+        if not region:
+            region = self.region
 
-        html = requests.get(url).text
+        try:
+            html = requests.get(url).text
+        except requests.exceptions.RequestException as e:
+            html = 'REQUEST TIMED OUT ' + '(' + url + ')'
         text = self.get_text(html)
 
         # todo: optimze away redundant spliting, etc
-        tagged = self.tag_item(text, item=self.business_name, tag_name="BIZ_OF_INTEREST")
-        tagged = self.tag_item(' '.join(tagged), item=self.region, tag_name="REGION_OF_INTEREST")
+        tagged = self.tag_item(text, item=business_name, tag_name="BIZ_OF_INTEREST")
+        tagged = self.tag_item(' '.join(tagged), item=region, tag_name="REGION_OF_INTEREST")
 
         return tagged
 
