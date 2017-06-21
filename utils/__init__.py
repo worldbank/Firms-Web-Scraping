@@ -116,6 +116,7 @@ class InputTable(object):
         if not feature_func:
             feature_func = self.featurizer
 
+        # utility function for feature_getter
         def website_features(dict_results, feature_func=feature_func, key='websites'):
             ret = []
             for url in dict_results[key]:
@@ -126,13 +127,16 @@ class InputTable(object):
                                  'utc_timestamp': str(datetime.datetime.utcnow())} )
             return ret
 
+        # get google place api results
         results = self.places_api.get_results(business_name=business['Business Name'],
                                               region=business['Region'],
                                               types=None)
 
+        # get google place api website result (requires another api call, conver to dict w/ 'websites' key
         results = self.places_api.get_place_websites(results)
         dict_results = self.places_api.to_dict(results)
 
+        # extract website fatures (ues feature_func, typically NLP or tokenize the website)
         return website_features(dict_results)
 
     def push(self,
@@ -147,7 +151,7 @@ class InputTable(object):
         should be used.
 
         Checks for race conditions (pushing something twice because
-        it hasn't completed between calls) by pollin gatinst pushed, output tables
+        it hasn't completed between calls) by pollin against pushed, output tables
         """
         def pull(pushed=pushed,
                  output=output,
@@ -171,7 +175,7 @@ class InputTable(object):
                 #
                 # Note: There could be race conditions in here but I don't think
                 # Firm Web Scraping runs fast enough for it really happen.
-                # e.g., (~300/(30*24) bussines/hour vs. millsecond polling)
+                # e.g., (~300/(30*24) business/hour vs. millsecond polling)
                 pushed = pd.read_csv(os.path.join(self.data_root, pushed), sep='\t')
                 output = pd.read_csv(os.path.join(self.data_root, output), sep='\t')
 
@@ -190,6 +194,11 @@ class InputTable(object):
                 sink.write(to_json)
 
         return
+
+# fill me out tmmrw for finishing off website relevance
+class WebsiteRawTokens(object):
+    def __init__(self, url=None):
+        pass
 
 class WebsiteBagOfKeyphrases(object):
     def __init__(self, n_keyterms=0.05, url=None):
