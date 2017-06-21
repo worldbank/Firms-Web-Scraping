@@ -134,7 +134,6 @@ class InputTable(object):
             return ret
 
         # get google place api results
-        # TODO: filter results to exclude duplicate urls
         results = self.places_api.get_results(business_name=business['Business Name'],
                                               region=business['Region'],
                                               types=None)
@@ -143,8 +142,7 @@ class InputTable(object):
         results = self.places_api.get_place_websites(results)
         dict_results = self.places_api.to_dict(results)
 
-        print('\t RESULTS:', dict_results)
-
+        # TODO: pass in google location results as features too
         # extract website fatures (ues feature_func, typically NLP or tokenize the website)
         return website_features(dict_results)
 
@@ -194,13 +192,15 @@ class InputTable(object):
                     # degelate to getter
                     time.sleep(1)
                     yield business # yielding allows us to have relatively constant memory
-                    break #DEBUG
+                    #break #DEBUG
 
         if not sink:
             sink = self.sink_func
 
         for data in pull():
             for to_json in getter(data):
+                import ipdb
+                ipdb.set_trace()
                 sink.write(to_json)
 
         return
@@ -261,7 +261,7 @@ class WebsiteRawTokensWithTaggedBizRegion(object):
         if not region:
             region = self.region
 
-        try:# note: some websites seems to block straight requets, might want to mimick a browswer
+        try:# note: some websites seems to block straight requets, might want to mimick a browswer using selenium
             html = requests.get(url).text
         except requests.exceptions.RequestException as e:
             html = 'REQUEST TIMED OUT ' + '(' + url + ')'
@@ -373,16 +373,28 @@ class GooglePlacesAccess(object):
                                                 radius=radius,
                                                 types=types)
 
-        return results
+        # return unique results only, note some businesses have different names but same url
+        seen = set()
+        seen_add = seen.add
+        unique_results = [result for result in results.places if not (result.name in seen or seen_add(result.name))]
+
+        return unique_results
 
     # todo: requires rate limiting on loop
     def get_place_websites(self, results):
+        # return unique webistes only (irrespective of the business name)
+
+        seen = set()
+        seen.update([None, 'None'])# skip urls that are null
+        seen_add = seen.add
+
         ret = []
-        for place in results.places:
+        for place in results:
             time.sleep(1) # note: when rate limitating is implemented, no longer needed
 
             place.get_details() # side effect, calls Google API
-            ret.append(place)
+            if not (place.website in seen or seen_add(place.website)):
+                ret.append(place)
 
         return ret
 
@@ -402,6 +414,13 @@ class JsonSink(object):
     """
     def __init__(self, log_name="Feature Sink", file_name="sink.json.intermediate"):
 
+        # Handle two side effects that occur when using logging:
+        #   a) existing handlers and ...
+        logger = logging.getLogger(log_name)
+        if logger.handlers:
+            logger.handlers = []
+
+        # ... b) need an existing file to write to
         # There is some kind of side effect wherein the file_name has to exist for the
         # the logger to write to it and it won't create it.
         # We truncate/create the either case as this is new data.
