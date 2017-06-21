@@ -134,6 +134,7 @@ class InputTable(object):
             return ret
 
         # get google place api results
+        # TODO: filter results to exclude duplicate urls
         results = self.places_api.get_results(business_name=business['Business Name'],
                                               region=business['Region'],
                                               types=None)
@@ -141,6 +142,8 @@ class InputTable(object):
         # get google place api website result (requires another api call, conver to dict w/ 'websites' key
         results = self.places_api.get_place_websites(results)
         dict_results = self.places_api.to_dict(results)
+
+        print('\t RESULTS:', dict_results)
 
         # extract website fatures (ues feature_func, typically NLP or tokenize the website)
         return website_features(dict_results)
@@ -191,6 +194,7 @@ class InputTable(object):
                     # degelate to getter
                     time.sleep(1)
                     yield business # yielding allows us to have relatively constant memory
+                    break #DEBUG
 
         if not sink:
             sink = self.sink_func
@@ -257,7 +261,7 @@ class WebsiteRawTokensWithTaggedBizRegion(object):
         if not region:
             region = self.region
 
-        try:
+        try:# note: some websites seems to block straight requets, might want to mimick a browswer
             html = requests.get(url).text
         except requests.exceptions.RequestException as e:
             html = 'REQUEST TIMED OUT ' + '(' + url + ')'
@@ -397,6 +401,12 @@ class JsonSink(object):
     with defined constants.
     """
     def __init__(self, log_name="Feature Sink", file_name="sink.json.intermediate"):
+
+        # There is some kind of side effect wherein the file_name has to exist for the
+        # the logger to write to it and it won't create it.
+        # We truncate/create the either case as this is new data.
+        open(file_name, 'w').close()
+
         self.log_name = log_name
         self.file_name = file_name
 
@@ -425,4 +435,5 @@ Example usage:
     mytable.push(getter=mytable.feature_getter) # look at `sink.json.intermediate`
 
     # do something interesting with `sink.json.intermediate`, like feed it to NextML+MTurk
+    # see WebsiteRelevance/__init__.py for a use of these functions
 """
