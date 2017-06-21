@@ -199,8 +199,6 @@ class InputTable(object):
 
         for data in pull():
             for to_json in getter(data):
-                import ipdb
-                ipdb.set_trace()
                 sink.write(to_json)
 
         return
