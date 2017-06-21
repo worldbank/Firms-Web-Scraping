@@ -56,7 +56,7 @@ class InputTable(object):
         self.sink_func = sink_func
 
         if not self.featurizer:
-            self.featurizer = WebsiteBagOfKeyphrases()
+            self.featurizer = WebsiteRawTokensWithTaggedBizRegion() # WebsiteBagOfKeyphrases()
 
         if not self.sink_func:
             self.sink_func = JsonSink()
@@ -109,6 +109,8 @@ class InputTable(object):
         Gets website "features" (keyphrases, text, etc) as well as pulls website
         address. Gathers data for the rest of the system.
 
+        `business` is a row from the input database.
+
         Extract website features, used for follow on human manual check, for
         active learning task training and, finally, for task prediction
         (both task training and prediction happen at the same time under the
@@ -123,7 +125,10 @@ class InputTable(object):
             for url in dict_results[key]:
                 if url and url != 'None': # todo: fix dict_results from returning 'None'
                     # note this could be multi threaded for speed up; feature_func is kinda slow
-                    ret.append( {'features': feature_func.get_website_features(url=url),
+                    ret.append( {'features': feature_func.\
+                                                get_website_features(url=url,
+                                                                     business_name=business['Business Name'],
+                                                                     region=business['Region']),
                                  'website': url,
                                  'utc_timestamp': str(datetime.datetime.utcnow())} )
             return ret
@@ -412,6 +417,5 @@ Example usage:
     # returns per row associated websites to a given business in InputTable
     mytable.push(getter=mytable.feature_getter) # look at `sink.json.intermediate`
 
-    # do something interesting with `sink.json.intermediate`, like feed it to MTurk/Crowdflower or
-    # to an active online classifier...
+    # do something interesting with `sink.json.intermediate`, like feed it to NextML+MTurk
 """
