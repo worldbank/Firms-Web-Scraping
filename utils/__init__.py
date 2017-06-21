@@ -237,6 +237,9 @@ class WebsiteRawTokensWithTaggedBizRegion(object):
 
         for match in matches:
             if match[1] >= 90:
+                # note: `=` is a vw 'trick' where it's a categorical variable but since we're
+                # doing >= 90 we only have 10. I can't assign a value (`:`) w/o post processing
+                # in the NextML code, which woudl get way too messy
                 text = text.replace(match[0], tag_name+'='+str(match[1]))
 
         return text.split()
@@ -248,8 +251,6 @@ class WebsiteRawTokensWithTaggedBizRegion(object):
         html = requests.get(url).text
         text = self.get_text(html)
 
-        import ipdb
-        ipdb.set_trace()
         # todo: optimze away redundant spliting, etc
         tagged = self.tag_item(text, item=self.business_name, tag_name="BIZ_OF_INTEREST")
         tagged = self.tag_item(' '.join(tagged), item=self.region, tag_name="REGION_OF_INTEREST")
