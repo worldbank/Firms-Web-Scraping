@@ -9,6 +9,7 @@ from sqlalchemy import (
         Integer,
         String,
         )
+from fuzzywuzzy import process
 import textacy
 import requests
 import pandas as pd
@@ -195,10 +196,65 @@ class InputTable(object):
 
         return
 
-# fill me out tmmrw for finishing off website relevance
-class WebsiteRawTokens(object):
-    def __init__(self, url=None):
-        pass
+class WebsiteRawTokensWithTaggedBizRegion(object):
+    def __init__(self, url=None, business_name=None, region=None):
+        self.url = url
+        self.business_name = business_name
+        self.region = region
+
+    def get_text(self, html):
+        """
+        Copied from NLTK package.
+        Modified to mark/tag HTML attributes
+
+        see: https://stackoverflow.com/questions/26002076/python-nltk-clean-html-not-implemented
+        for more details
+        """
+
+        # First we remove inline JavaScript/CSS:
+        cleaned = re.sub(r"(?is)<(script|style).*?>.*?(</\1>)", " JAVASCRIPT_CSS ", html.strip())
+        # Then we remove html comments. This has to be done before removing regular
+        # tags since comments can contain '>' characters.
+        cleaned = re.sub(r"(?s)<!--(.*?)-->[\n]?", " COMMENT ", cleaned)
+        # Next we can remove the remaining tags:
+        cleaned = re.sub(r"(?s)<.*?>", " TAG ", cleaned)
+        # Finally, we deal with whitespace
+        cleaned = re.sub(r"&nbsp;", " ", cleaned)
+        cleaned = re.sub(r"\n", " ", cleaned) # added to strip newlines
+        cleaned = re.sub(r"\t", " ", cleaned) # added to strip tabs
+        cleaned = re.sub(r"  ", " ", cleaned)
+        cleaned = re.sub(r"  ", " ", cleaned)
+        return cleaned.strip()
+
+    def ngram_iterator(self, text, n):
+        for idx in range(len(text) - n + 1):
+            yield ' '.join(text[idx:idx+n])
+
+    def tag_item(self, text, item, tag_name):
+        ngrams = self.ngram_iterator(text.split(), len(item.split()))
+        # take top 3 fuzzy matches greater than 90%
+        matches = process.extract(item, ngrams, limit=3)
+
+        for match in matches:
+            if match[1] >= 90:
+                text = text.replace(match[0], tag_name+'='+str(match[1]))
+
+        return text.split()
+
+    def get_website_features(self, url=None):
+        if not url:
+            url = self.url
+
+        html = requests.get(url).text
+        text = self.get_text(html)
+
+        import ipdb
+        ipdb.set_trace()
+        # todo: optimze away redundant spliting, etc
+        tagged = self.tag_item(text, item=self.business_name, tag_name="BIZ_OF_INTEREST")
+        tagged = self.tag_item(' '.join(tagged), item=self.region, tag_name="REGION_OF_INTEREST")
+
+        return tagged
 
 class WebsiteBagOfKeyphrases(object):
     def __init__(self, n_keyterms=0.05, url=None):

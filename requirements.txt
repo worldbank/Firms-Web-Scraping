@@ -1,9 +1,7 @@
-boto3
 pandas
 requests
-ply
-joblib
 textacy
 python-google-places
 sqlalchemy
 scrapy
+fuzzywuzzy
