@@ -130,7 +130,9 @@ class InputTable(object):
                                                                      business_name=business['Business Name'],
                                                                      region=business['Region']),
                                  'website': url,
-                                 'utc_timestamp': str(datetime.datetime.utcnow())} )
+                                 'utc_timestamp': str(datetime.datetime.utcnow()),
+                                 'business_name':business['Business Name'],
+                                 'region':business['Region']} ) #note: this may be the wrong 'level' to be adding biz, regin info
             return ret
 
         # get google place api results
@@ -262,7 +264,7 @@ class WebsiteRawTokensWithTaggedBizRegion(object):
         try:# note: some websites seems to block straight requets, might want to mimick a browswer using selenium
             html = requests.get(url).text
         except requests.exceptions.RequestException as e:
-            html = 'REQUEST TIMED OUT ' + '(' + url + ')'
+            html = 'REQUEST_TIMED_OUT_' + '(' + url + ')'
         text = self.get_text(html)
 
         # todo: optimze away redundant spliting, etc
