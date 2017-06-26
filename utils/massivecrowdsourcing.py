@@ -7,9 +7,14 @@ class MassiveCrowdSourcing(object):
     (e.g. MTurks on Amazon MTurK). While the variable names are obtuse
     they follow those referenced in the paper above along with documentation.
 
-    This implementation is unique in that it is parameterized upon MTurk, national min wage
-    and how long we expect it to take to *verify* a report of firm meta data. From these values
-    an optimal reward amount is derived.
+    Essentially, given a penalty (with held bonus in terms of MTurk) `e` and a
+    verification cost `e`, time a Turker has to spend verifying something, we can
+    calculate the minium total reward you must be willing to spend to encourage a
+    social network of depth `i` to particpate.
+
+    In any case, the social network is paid out according to scheme in `reward_for_node_i`
+    and follows the 1/2 split incentive contract that is shown to be optimal in the paper
+    for spending the least amount of money.
 
     t: Probabilty that a node has the answer
     f: Probabilty of a node is irrational and also generates a false answer (disjoint with t)
