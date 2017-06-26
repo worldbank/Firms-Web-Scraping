@@ -24,12 +24,12 @@ class MassiveCrowdSourcing(object):
             for j = 2
     """
     def __init__(self,
-                 t=0.80,
-                 f=0.20,
-                 sj=0.25,
-                 c=None,
+                 t=1/3,
+                 f=2/3,
+                 sj=0.5,
+                 c=0.75,
                  r=None,
-                 e=None,
+                 e=0.50,
                  num_min_to_review=5,
                  wage_per_min=0.18,
                  calculate_optimal_values=True):
@@ -41,21 +41,36 @@ class MassiveCrowdSourcing(object):
         # variables we can set optimally given the paper above
         # ... requires one of them to be fixed
         self.c = c
-        self.r = r
+        self.total_reward = r
         self.e = e
 
-        # On the MTurk platform we can assume a fixed e by taking an
-        # assumed average time required to verify a report multipled by a fair wage
-        self.e = num_min_to_review * wage_per_min
-        self.c = self.e * (1+self.t/self.f)
-
+    def reward_for_node_i(self, i=2, reward=None):
         # now we can caluculate the minimum reward to encourage a node i to particpate
         # node i is the zero index node relative to/counting back from the node finding the firm data
-        i = 2 # let's say
+        if not reward:
+            reward = self.total_reward
+        reward = self.s_i(i) * reward
+        print(reward, ' is the amount we pay to node {} to particpate'.format(i))
+
+    def reward_min(self, i=2):
+        """
+        i indicates the node index, where i+1 is the reporting node (node that found firm metadata).
+        i-1 is the parent of i and here we calculate the minimum total reward required for node i
+        to bother to verify the report and send it directly to the root (e.g., complete the HIT)
+        """
+        # now we can caluculate the minimum *total reward* to encourage a parent node i to particpate
+        # under the payment distribution scheme node `reward_for_node_i`
+        assert i > 0, "Can only calculate minimium rewards for networks involving at least 2 nodes on path"
         r_i_min = (1+self.f/self.t) * \
                      self.e/((1-self.s_i(i-1))*self.s_i(i))
 
-        print(r_i_min, ' is the amount we expect to pay for node 2 to particpate')
+        print(r_i_min, ' is the minimum reward offered by the root'.format(i))
+
+    def c_min(self, e):
+        return (1 + self.t/self.f)*e
+
+    def e_max(self, c):
+        return c*self.f/(self.t + self.f)
 
     def s_i(self, node_i):
         """
