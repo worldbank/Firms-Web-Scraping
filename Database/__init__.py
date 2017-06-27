@@ -2,8 +2,10 @@ from utils import InputTable
 #from utils import WebsiteRawTokensWithTaggedBizRegion
 from utils import GooglePlacesAccess
 from utils import JsonSink
+import zipfile
 import json
 import os
+from zipfile import ZipFile
 
 class Stage1(object):
     def __init__(self):
@@ -13,6 +15,25 @@ class Stage1(object):
         self.mygoogle = GooglePlacesAccess()
         self.mytable = InputTable(places_api = self.mygoogle)
         self.mysink = JsonSink(file_name = self.stage1_output_intermediate_filename)
+
+    def run(self):
+        """
+        Implements basic ingest and output to follow on Biz, Owner Information stages
+        Assumes an input.csv exists with columns for 'Business Name' and 'Region'
+        """
+        self.mytable.push(getter=self.mytable.feature_getter,
+                          sink=self.mysink)
+
+        assert os.path.isfile(self.stage1_output_intermediate_filename), "Stage1 InputTable.push() did not produce an output file!"
+        self.post_fix()
+
+        myzipfile = ZipFile('database.dump.zip', 'w')
+        myzipfile.write(self.stage1_output_final_filename)
+        myzipfile.close()
+
+        # clean up
+        os.remove(self.stage1_output_final_filename)
+        os.remove(self.stage1_output_intermediate_filename)
 
     def post_fix(self):
         """
@@ -41,17 +62,3 @@ class Stage1(object):
 
         with open(self.stage1_output_final_filename, 'w') as final:
             json.dump(final_output, final, ensure_ascii=False)
-
-    def run(self):
-        """
-        Implements basic ingest and output to follow on Biz, Owner Information stages
-        Assumes an input.csv exists with columns for 'Business Name' and 'Region'
-        """
-        self.mytable.push(getter=self.mytable.feature_getter,
-                          sink=self.mysink)
-
-        assert os.path.isfile(self.stage1_output_intermediate_filename), "Stage1 did not produce an output file!"
-        self.post_fix()
-        # todo: zip up output file
-
-        return True
