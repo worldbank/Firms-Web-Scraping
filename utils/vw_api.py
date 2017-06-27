@@ -53,17 +53,22 @@ class VWAPI(object):
         ret = []
         while num_examples > 0 and chunk:
             chunk = sock.recv(buffer_size)# todo: should we have a timeout socket? This will block.
-            ret.append(chunk)
+            chunk_list = chunk.decode('utf-8')[:-1].split('\n')
+            ret.extend(chunk_list)
             #num_examples = num_examples - 1
 
             # so vw can actually return one or multiple examples per tcp response
             # ... we need to identify how many example were returned and decrement
             # appropriately. We trim the trailing new line to more easily count.
-            num_examples = num_examples - len(chunk[:-1].split('\n'))
+            #num_examples = num_examples - len(chunk[:-1].split('\n'))
+            # decode('utf-8') in case if ran from python 3 instead of python 2
+            #num_examples = num_examples - len(chunk.decode('utf-8')[:-1].split('\n'))
+            num_examples = num_examples - len(chunk_list)
 
         # VW returns a new line on last line but we .split() raw responses
         # so we leave off the last new line so that we may easily parse the response
-        return "".join(ret)[:-1]
+        #return "".join(ret)[:-1]
+        return "\n".join(ret)
 
     def to_vw_examples(self,
                        examples,
@@ -91,10 +96,19 @@ class VWAPI(object):
             print(examples[0][0], type(examples[0][0]))
             #print('\n', examples[0][0][0])
 
+            # we want to check the elements as being strings below but ...
             #assert isinstance(examples[0][0], basestring), "get_bulk_responses: Examples are not array of strings!"
-            #fix to work in both python 2 and python 3 (ugh)
-            is_str = isinstance(examples[0][0], str)
-            is_unicode = isinstance(examples[0][0], unicode)
+
+            # ... the above doesn't work in both Py 2 and Py 3
+            # this fix works in both
+            sample = examples[0][0]
+            is_str = isinstance(sample, str) # works in Py 3, not Py 2
+            if not is_str:
+                try:
+                    is_unicode = isinstance(sample, unicode)
+                except NameError: # we're in Python 3 and its not unicode (str=unicode in py 3)
+                    is_unicode = False
+
             assert is_str or is_unicode, "get_bulk_responses: Examples are not array of strings!"
 
             for example in examples:
