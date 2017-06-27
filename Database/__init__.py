@@ -8,6 +8,16 @@ import os
 from zipfile import ZipFile
 
 class Stage1(object):
+    """
+    Simple implementation that fetches Businesses from a .csv file
+    and for those businesses not already processed or in process
+    it outputs two .zip files to be ingested by the next stage:
+        one for website relevance and one for product extraction
+
+    The follow on stages are responsible for appropriately processing
+    this data; e.g. ExtractProducts should only operate on websites
+    classified as relevant.
+    """
     def __init__(self):
         self.stage1_output_intermediate_filename = 'sink.json.intermediate'
         self.stage1_output_final_filename = 'stage1.json'
@@ -21,13 +31,15 @@ class Stage1(object):
         Implements basic ingest and output to follow on Biz, Owner Information stages
         Assumes an input.csv exists with columns for 'Business Name' and 'Region'
         """
+        #import ipdb
+        #ipdb.set_trace()
         self.mytable.push(getter=self.mytable.feature_getter,
                           sink=self.mysink)
 
         assert os.path.isfile(self.stage1_output_intermediate_filename), "Stage1 InputTable.push() did not produce an output file!"
         self.post_fix()
 
-        myzipfile = ZipFile('database.dump.zip', 'w')
+        myzipfile = ZipFile('database.output.relevance_data.zip', 'w')
         myzipfile.write(self.stage1_output_final_filename)
         myzipfile.close()
 

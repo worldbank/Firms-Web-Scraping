@@ -403,6 +403,8 @@ class JsonSink(object):
         # We truncate/create the either case as this is new data.
         open(file_name, 'w').close()
 
+        assert os.path.exists(file_name), "JsonSink: Failed to create \'{}\'!".format(file_name)
+
         self.log_name = log_name
         self.file_name = file_name
 
@@ -430,6 +432,5 @@ Example usage:
     # returns per row associated websites to a given business in InputTable
     mytable.push(getter=mytable.feature_getter) # look at `sink.json.intermediate`
 
-    # do something interesting with `sink.json.intermediate`, like feed it to NextML+MTurk
-    # see WebsiteRelevance/__init__.py for a use of these functions
+    # do something interesting with `sink.json.intermediate`, like feed it to Database
 """
