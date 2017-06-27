@@ -1,14 +1,6 @@
 from googleplaces import GooglePlaces, types, lang
 from ApiKey import ApiKeys
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import (
-        create_engine,
-        Column,
-        ForeignKey,
-        Integer,
-        String,
-        )
+import utils # for vwapi
 from fuzzywuzzy import process
 import textacy
 import requests
@@ -22,25 +14,10 @@ import sys
 import os
 import errno
 
-# DB, walk through http://docs.sqlalchemy.org/en/latest/orm/tutorial.html
-#   to get best practices
-#
-# also see: https://stackoverflow.com/questions/31394998/using-sqlalchemy-to-load-csv-file-into-a-database
-# laste comment on best practices for larger files
-#   catch is does COPY FROM support upsert type items
-
-# For now let's just use a Panads read from .csv
 class InputTable(object):
     """
     Map an input.csv to the project database (helps to track
     businesses processed, input/outputs, etc.)
-
-    WIP: For now we just do a straight read of the input.csv,
-    deupe it but that's it.
-
-    Todo: duplicate, upsert to a project
-    local database to more easily capture statistics and
-    manage input data flow.
     """
     def __init__(self,
                  database_name="input.csv",
