@@ -61,7 +61,6 @@ class VWAPI(object):
             # ... we need to identify how many example were returned and decrement
             # appropriately. We trim the trailing new line to more easily count.
             #num_examples = num_examples - len(chunk[:-1].split('\n'))
-            # decode('utf-8') in case if ran from python 3 instead of python 2
             #num_examples = num_examples - len(chunk.decode('utf-8')[:-1].split('\n'))
             num_examples = num_examples - len(chunk_list)
 

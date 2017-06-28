@@ -140,18 +140,13 @@ class InputTable(object):
         it hasn't completed between calls) by pollin against pushed, output tables
         """
         def pull(pushed=pushed,
-                 output=output,
-                 getter=getter,
-                 sink=sink):
+                 output=output):
             """
             Pulls business related data, features, to supply to the sink function.
             Typically we just write out the business data aquired from Google Places to disk.
 
             Made this into an inner function to simplfy the driving logic of `push`
             """
-            if not getter:
-                getter = self.default_getter
-
 
             keys = ['Business Name', 'Region']
 
@@ -171,7 +166,9 @@ class InputTable(object):
                     # degelate to getter
                     time.sleep(1)
                     yield business # yielding allows us to have relatively constant memory
-                    #break #DEBUG
+
+        if not getter:
+            getter = self.default_getter
 
         if not sink:
             sink = self.sink_func
@@ -251,7 +248,13 @@ class WebsiteRawTokensWithTaggedBizRegion(object):
         return tagged
 
 class WebsiteBagOfKeyphrases(object):
-    def __init__(self, n_keyterms=0.05, url=None):
+    def __init__(self, n_keyterms=0.05, url=None, ):
+        """
+        Mainly intended for product classification, this calss provides a generic API
+        for accepting a url and extracting keyphrases from it, when are then used
+        for product classification and training.
+
+        """
         self.n_keyterms = n_keyterms
         self.url = url
 
@@ -282,7 +285,14 @@ class WebsiteBagOfKeyphrases(object):
         cleaned = re.sub(r"  ", " ", cleaned)
         return cleaned.strip()
 
-    def get_website_features(self, lang="en", url=None, n_keyterms=None):
+    def get_website_features(self, lang="en", url=None, n_keyterms=None, business_name=None, region=None):
+        """
+        Extract features from a given url to learn a classification task (typ. for product classification)
+
+        The variables business_name and region are not used in this class but
+        are present to allow generic compatiable with `website_features`, which does
+        not care what featurizer it calls.
+        """
         if not n_keyterms:
             n_keyterms = self.n_keyterms
 
