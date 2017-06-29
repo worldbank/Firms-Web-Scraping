@@ -58,8 +58,8 @@ class Stage1(object):
         os.remove(self.stage1_output_final_filename)
         os.remove(self.stage1_output_intermediate_filename)
 
-         Generate features for the Product Classification task, save as zip for Active Learning training
-         and follow on processing
+        # Generate features for the Product Classification task, save as zip for Active Learning training
+        # and follow on processing
         self.product_mytable.push(getter=self.product_mytable.feature_getter,
                                   sink=self.myproductsink)
 
