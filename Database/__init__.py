@@ -130,3 +130,15 @@ class Stage1(object):
 
         with open(final, 'w') as final_obj:
             json.dump(final_output, final_obj, ensure_ascii=False)
+
+class Stage5(object):
+    """
+    Implements Data Staging: Sink sub system, basically
+    collects all the output files of other stages and generates a
+    new .csv of business information.
+
+    businesses may be listed more than once but their product and/or ownership
+    informatino may be different
+    """
+    def __init__(self):
+        pass
