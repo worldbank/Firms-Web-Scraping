@@ -42,24 +42,24 @@ class Stage1(object):
         Assumes an input.csv exists with columns for 'Business Name' and 'Region'
         """
 
-        ## Generate features for the Website Relevance task, save as zip for Active Learning training
-        ## and follow on processing
-        #self.mytable.push(getter=self.mytable.feature_getter,
-        #                  sink=self.mysink)
-
-        #assert os.path.isfile(self.stage1_output_intermediate_filename), "Stage1 InputTable.push() did not produce an output file!"
-        #self.post_fix()
-
-        #myzipfile = ZipFile('database.output.relevance_data.zip', 'w')
-        #myzipfile.write(self.stage1_output_final_filename)
-        #myzipfile.close()
-
-        ## clean up
-        #os.remove(self.stage1_output_final_filename)
-        #os.remove(self.stage1_output_intermediate_filename)
-
-        # Generate features for the Product Classification task, save as zip for Active Learning training
+        # Generate features for the Website Relevance task, save as zip for Active Learning training
         # and follow on processing
+        self.mytable.push(getter=self.mytable.feature_getter,
+                          sink=self.mysink)
+
+        assert os.path.isfile(self.stage1_output_intermediate_filename), "Stage1 InputTable.push() did not produce an output file!"
+        self.post_fix()
+
+        myzipfile = ZipFile('database.output.relevance_data.zip', 'w')
+        myzipfile.write(self.stage1_output_final_filename)
+        myzipfile.close()
+
+        # clean up
+        os.remove(self.stage1_output_final_filename)
+        os.remove(self.stage1_output_intermediate_filename)
+
+         Generate features for the Product Classification task, save as zip for Active Learning training
+         and follow on processing
         self.product_mytable.push(getter=self.product_mytable.feature_getter,
                                   sink=self.myproductsink)
 
