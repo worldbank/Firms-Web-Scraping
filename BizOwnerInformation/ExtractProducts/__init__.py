@@ -20,9 +20,6 @@ class ExtractProducts(object):
         ExtractProducts accepts the output of a run of ExtractRelevantWebsites
         and queries the Product classifier for each product in a valid website.
         """
-        import ipdb
-        ipdb.set_trace()
-
         with ZipFile(in_product_zip_file,'r') as zf:
             loads = zf.read(zf.namelist()[0])
             product_json_data = json.loads(loads.decode("utf-8"))
