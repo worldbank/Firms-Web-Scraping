@@ -42,21 +42,21 @@ class Stage1(object):
         Assumes an input.csv exists with columns for 'Business Name' and 'Region'
         """
 
-        ## Generate features for the Website Relevance task, save as zip for Active Learning training
-        ## and follow on processing
-        #self.mytable.push(getter=self.mytable.feature_getter,
-        #                  sink=self.mysink)
+        # Generate features for the Website Relevance task, save as zip for Active Learning training
+        # and follow on processing
+        self.mytable.push(getter=self.mytable.feature_getter,
+                          sink=self.mysink)
 
-        #assert os.path.isfile(self.stage1_output_intermediate_filename), "Stage1 InputTable.push() did not produce an output file!"
-        #self.post_fix()
+        assert os.path.isfile(self.stage1_output_intermediate_filename), "Stage1 InputTable.push() did not produce an output file!"
+        self.post_fix()
 
-        #myzipfile = ZipFile('database.output.relevance_data.zip', 'w')
-        #myzipfile.write(self.stage1_output_final_filename)
-        #myzipfile.close()
+        myzipfile = ZipFile('database.output.relevance_data.zip', 'w')
+        myzipfile.write(self.stage1_output_final_filename)
+        myzipfile.close()
 
-        ## clean up
-        #os.remove(self.stage1_output_final_filename)
-        #os.remove(self.stage1_output_intermediate_filename)
+        # clean up
+        os.remove(self.stage1_output_final_filename)
+        os.remove(self.stage1_output_intermediate_filename)
 
         # Generate features for the Product Classification task, save as zip for Active Learning training
         # and follow on processing
@@ -65,7 +65,8 @@ class Stage1(object):
 
         assert os.path.isfile(self.product_stage1_output_intermediate_filename), "Stage1 InputTable.push() did not produce an output file for products!"
         self.post_fix(intermediate=self.product_stage1_output_intermediate_filename,
-                      final=self.product_stage1_output_final_filename)
+                      final=self.product_stage1_output_final_filename,
+                      for_products=True)
 
         myzipfile = ZipFile('database.output.product.zip', 'w')
         myzipfile.write(self.product_stage1_output_final_filename)
@@ -77,7 +78,8 @@ class Stage1(object):
 
     def post_fix(self,
                  intermediate=None,
-                 final=None):
+                 final=None,
+                 for_products=False):
         """
         The intermediate file was designed so that you could easily append json examples to it
         without having to worry about any outer containers or metadata
@@ -88,6 +90,23 @@ class Stage1(object):
             intermediate = self.stage1_output_intermediate_filename
         if not final:
             final = self.stage1_output_final_filename
+
+        def feature_list_to_features(my_json):
+            """
+            For fixing up product lists
+            """
+            ret = []
+            for business in my_json:
+                for feature in business['meta']['features']:
+                    row = {'meta':{'features': feature},
+                           'business_name':business['business_name'],
+                           'target_id':hash(business['business_name']+feature),
+                           'region': business['region'],
+                           'primary_description':business['primary_description'],
+                           'utc_timestamp': business['utc_timestamp'],
+                           'website': business['website']}
+                    ret.append(row)
+            return ret
 
         def fix_up(row):
             ret = {'meta':{}}
@@ -105,6 +124,9 @@ class Stage1(object):
 
         with open(intermediate, 'r') as intermediate_obj:
             final_output = [fix_up(row) for row in intermediate_obj]
+
+        if for_products:
+            final_output = feature_list_to_features(final_output)
 
         with open(final, 'w') as final_obj:
             json.dump(final_output, final_obj, ensure_ascii=False)
