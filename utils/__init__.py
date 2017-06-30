@@ -408,8 +408,6 @@ class GooglePlacesAccess(object):
             ret['websites'].append(place.website)
             ret['urls'].append(place.url)
 
-            print('converted ', place.website, ' to', ret['websites'])
-
         return ret
 
 class JsonSink(object):
