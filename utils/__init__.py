@@ -378,7 +378,7 @@ class GooglePlacesAccess(object):
 
         # take only the net location, sometimes we get funky directories that don't resolve
         for result in unique_results:
-           url = urlsplit(result['website'])
+           url = urlsplit(result['website'].details)
            result['website'] = url.scheme + '://' +  url.netloc
         return unique_results
 
