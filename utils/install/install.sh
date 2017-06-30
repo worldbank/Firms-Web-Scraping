@@ -7,6 +7,8 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
 
+sudo apt-get update
+
 echo '(1) Installing docker...'
 sudo apt-get -y install docker
 echo
