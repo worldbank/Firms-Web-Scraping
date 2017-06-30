@@ -1,0 +1,13 @@
+app_id: ProductClassification
+args:
+  alg_list:
+    - {alg_id: VowpalWabbit, alg_label: VowpalWabbit, test_alg_label: Test}
+  algorithm_management_settings:
+    mode: fixed_proportions
+    params:
+    - {alg_label: VowpalWabbit, proportion: 1}
+  num_tries: 20
+  # really cheap hack to have no instructions
+  instructions: <br>
+  debrief: Thank you for clicking! Paste your user id into the HIT screen to complete the HIT
+  participant_to_algorithm_management: one_to_many
