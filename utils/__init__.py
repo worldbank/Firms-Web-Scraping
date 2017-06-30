@@ -157,12 +157,12 @@ class InputTable(object):
                 # Note: There could be race conditions in here but I don't think
                 # Firm Web Scraping runs fast enough for it really happen.
                 # e.g., (~300/(30*24) business/hour vs. millsecond polling)
-                pushed = pd.read_csv(os.path.join(self.data_root, pushed), sep='\t')
-                output = pd.read_csv(os.path.join(self.data_root, output), sep='\t')
+                df_pushed = pd.read_csv(os.path.join(self.data_root, pushed), sep='\t')
+                df_output = pd.read_csv(os.path.join(self.data_root, output), sep='\t')
 
                 # note: could use a real database, would elminate this problem
-                if not all(any(output[key] == business[key]) for key in keys) and\
-                   not all(any(pushed[key] == business[key]) for key in keys):
+                if not all(any(df_output[key] == business[key]) for key in keys) and\
+                   not all(any(df_pushed[key] == business[key]) for key in keys):
                     # degelate to getter
                     time.sleep(1)
                     yield business # yielding allows us to have relatively constant memory
@@ -366,12 +366,14 @@ class GooglePlacesAccess(object):
         results = self.places_api.nearby_search(location=location,
                                                 keyword=keyword,
                                                 radius=radius,
-                                                types=types)[:max_per_business_name]
+                                                types=types)
 
         # return unique results only, note some businesses have different names but same url
         seen = set()
         seen_add = seen.add
         unique_results = [result for result in results.places if not (result.name in seen or seen_add(result.name))]
+        # okay take top n results
+        unique_results = unique_results[:max_per_business_name]
 
         return unique_results
 

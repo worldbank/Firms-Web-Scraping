@@ -18,7 +18,11 @@ class Stage1(object):
     this data; e.g. ExtractProducts should only operate on websites
     classified as relevant.
     """
-    def __init__(self):
+    def __init__(self, input_file=None):
+        self.input_file = input_file
+        if not input_file:
+            self.input_file = 'input.csv'
+
         self.stage1_output_intermediate_filename = 'sink.json.intermediate'
         self.stage1_output_final_filename = 'stage1.json'
 
@@ -28,8 +32,10 @@ class Stage1(object):
         self.mygoogle = GooglePlacesAccess()
         self.bagofkeyphrases = WebsiteBagOfKeyphrases()
 
-        self.mytable = InputTable(places_api = self.mygoogle)
-        self.product_mytable = InputTable(places_api = self.mygoogle,
+        self.mytable = InputTable(database_name=input_file,
+                                  places_api = self.mygoogle)
+        self.product_mytable = InputTable(database_name=input_file,
+                                          places_api = self.mygoogle,
                                           featurizer= self.bagofkeyphrases)
 
         self.mysink = JsonSink(file_name = self.stage1_output_intermediate_filename)
@@ -113,7 +119,7 @@ class Stage1(object):
 
             ret['meta']['features'] = row['features']
             ret['target_id'] = hash(row['website'])
-            ret['primary_description'] = row['business_name']) # note would be nice to capture business website title
+            ret['primary_description'] = row['business_name'] # note would be nice to capture business website title
             ret['utc_timestamp'] = row['utc_timestamp']
             ret['website'] = row['website']
             ret['business_name'] = row['business_name']
