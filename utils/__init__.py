@@ -6,6 +6,7 @@ import textacy
 import requests
 import pandas as pd
 from urllib.parse import urlsplit
+from fake_useragent import UserAgent
 import logging
 import json
 import re
@@ -181,10 +182,11 @@ class InputTable(object):
         return
 
 class WebsiteRawTokensWithTaggedBizRegion(object):
-    def __init__(self, url=None, business_name=None, region=None):
+    def __init__(self, url=None, business_name=None, region=None, timeout=5):
         self.url = url
         self.business_name = business_name
         self.region = region
+        self.timeout = timeout
 
     def get_text(self, html):
         """
@@ -237,7 +239,7 @@ class WebsiteRawTokensWithTaggedBizRegion(object):
             region = self.region
 
         try:# note: some websites seems to block straight requets, might want to mimick a browswer using selenium
-            html = requests.get(url).text
+            html = requests.get(url, timeout=self.timeout).text
         except requests.exceptions.RequestException as e:
             html = 'REQUEST_TIMED_OUT_' + '(' + url + ')'
         text = self.get_text(html)
@@ -249,7 +251,7 @@ class WebsiteRawTokensWithTaggedBizRegion(object):
         return tagged
 
 class WebsiteBagOfKeyphrases(object):
-    def __init__(self, n_keyterms=0.05, url=None, ):
+    def __init__(self, n_keyterms=0.05, url=None, timeout=5):
         """
         Mainly intended for product classification, this calss provides a generic API
         for accepting a url and extracting keyphrases from it, when are then used
@@ -258,6 +260,8 @@ class WebsiteBagOfKeyphrases(object):
         """
         self.n_keyterms = n_keyterms
         self.url = url
+        self.timeout = timeout
+
 
     def reduce_keyphrases(list_keyphrases):
         return itertools.chain.from_iterable((element.split()\
@@ -300,8 +304,10 @@ class WebsiteBagOfKeyphrases(object):
         if not url:
             url = self.url
 
-        html = requests.get(url).text
-        text = self.get_text(html)
+        try:# note: some websites seems to block straight requets, might want to mimick a browswer using selenium
+            html = requests.get(url, timeout=self.timeout).text
+        except requests.exceptions.RequestException as e:
+            html = 'REQUEST_TIMED_OUT_' + '(' + url + ')'
 
         processed_text = textacy.preprocess.preprocess_text(text,
                                                             lowercase=True,
@@ -376,10 +382,6 @@ class GooglePlacesAccess(object):
         # okay take top n results
         unique_results = unique_results[:max_per_business_name]
 
-        # take only the net location, sometimes we get funky directories that don't resolve
-        for result in unique_results:
-           url = urlsplit(result['website'].details)
-           result['website'] = url.scheme + '://' +  url.netloc
         return unique_results
 
     # todo: requires rate limiting on loop
@@ -405,6 +407,8 @@ class GooglePlacesAccess(object):
         for place in relevant_places:
             ret['websites'].append(place.website)
             ret['urls'].append(place.url)
+
+            print('converted ', place.website, ' to', ret['websites'])
 
         return ret
 

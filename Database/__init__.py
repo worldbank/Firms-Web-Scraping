@@ -67,23 +67,23 @@ class Stage1(object):
         os.remove(self.stage1_output_final_filename)
         os.remove(self.stage1_output_intermediate_filename)
 
-        # Generate features for the Product Classification task, save as zip for Active Learning training
-        # and follow on processing
-        self.product_mytable.push(getter=self.product_mytable.feature_getter,
-                                  sink=self.myproductsink)
+        ## Generate features for the Product Classification task, save as zip for Active Learning training
+        ## and follow on processing
+        #self.product_mytable.push(getter=self.product_mytable.feature_getter,
+        #                          sink=self.myproductsink)
 
-        assert os.path.isfile(self.product_stage1_output_intermediate_filename), "Stage1 InputTable.push() did not produce an output file for products!"
-        self.post_fix(intermediate=self.product_stage1_output_intermediate_filename,
-                      final=self.product_stage1_output_final_filename,
-                      for_products=True)
+        #assert os.path.isfile(self.product_stage1_output_intermediate_filename), "Stage1 InputTable.push() did not produce an output file for products!"
+        #self.post_fix(intermediate=self.product_stage1_output_intermediate_filename,
+        #              final=self.product_stage1_output_final_filename,
+        #              for_products=True)
 
-        myzipfile = ZipFile('database.output.product.zip', 'w')
-        myzipfile.write(self.product_stage1_output_final_filename)
-        myzipfile.close()
+        #myzipfile = ZipFile('database.output.product.zip', 'w')
+        #myzipfile.write(self.product_stage1_output_final_filename)
+        #myzipfile.close()
 
-        # clean up
-        os.remove(self.product_stage1_output_final_filename)
-        os.remove(self.product_stage1_output_intermediate_filename)
+        ## clean up
+        #os.remove(self.product_stage1_output_final_filename)
+        #os.remove(self.product_stage1_output_intermediate_filename)
 
     def post_fix(self,
                  intermediate=None,

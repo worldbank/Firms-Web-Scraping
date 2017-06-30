@@ -6,3 +6,5 @@ sqlalchemy
 scrapy
 fuzzywuzzy
 ipython
+#selenium
+fake_useragent

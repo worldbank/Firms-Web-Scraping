@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # installs basic libraries needed, may take quite a while
-echo 'We have to install several libraries: docker, docker-compose, git, NextML and a Python 3 virtual environment ...'
+echo 'We have to install several libraries: docker, docker-compose, git, phantomjs, NextML and a Python 3 virtual environment ...'
 read -p "Do you want to run this script? Y/N " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -19,6 +19,10 @@ echo
 
 echo '(3) Installing git'
 sudo apt-get -y install git
+echo
+
+echo '(3) Installing phantomjs'
+sudo apt-get -y install phantomjs
 echo
 
 echo '(4) Fetching NextML from the World Bank private github repository ...'
