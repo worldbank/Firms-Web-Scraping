@@ -5,3 +5,4 @@ python-google-places
 sqlalchemy
 scrapy
 fuzzywuzzy
+ipython
