@@ -1,5 +1,4 @@
 from utils import InputTable
-#from utils import WebsiteRawTokensWithTaggedBizRegion
 from utils import WebsiteBagOfKeyphrases
 from utils import GooglePlacesAccess
 from utils import JsonSink
@@ -114,7 +113,7 @@ class Stage1(object):
 
             ret['meta']['features'] = row['features']
             ret['target_id'] = hash(row['website'])
-            ret['primary_description'] = "<a href=\"{}\" target=\"_blank\">{}</a>".format(row['website'], row['business_name'])
+            ret['primary_description'] = row['business_name']) # note would be nice to capture business website title
             ret['utc_timestamp'] = row['utc_timestamp']
             ret['website'] = row['website']
             ret['business_name'] = row['business_name']
@@ -137,7 +136,7 @@ class Stage5(object):
     collects all the output files of other stages and generates a
     new .csv of business information.
 
-    businesses may be listed more than once but their product and/or ownership
+    Businesses may be listed more than once but their product and/or ownership
     informatino may be different
     """
     def __init__(self):

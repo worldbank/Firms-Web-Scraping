@@ -343,22 +343,30 @@ class GooglePlacesAccess(object):
     ret2 = myg.get_relevant_places(ret1)
     ret3 = myg.get_place_websites(ret2)
     """
-    def __init__(self, key=ApiKeys['Google Places']):
+    def __init__(self, key=ApiKeys['Google Places'], max_per_business_name=None):
         self.places_api = GooglePlaces(ApiKeys['Google Places'])
+        self.max_per_business_name = max_per_business_name
+        if not self.max_per_business_name:
+            self.max_per_business_name = 3
 
     # todo: requires rate limiting
     def get_results(self,
                     business_name,
                     region,
                     radius=20000,
-                    types=None):
+                    types=None,
+                    max_per_business_name=None):
+
+        if max_per_business_name:
+            max_per_business_name = self.max_per_business_name
+
         location = region
         keyword = business_name
 
         results = self.places_api.nearby_search(location=location,
                                                 keyword=keyword,
                                                 radius=radius,
-                                                types=types)
+                                                types=types)[:max_per_business_name]
 
         # return unique results only, note some businesses have different names but same url
         seen = set()
