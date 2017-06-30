@@ -15,7 +15,7 @@ class ExtractProducts(object):
     def __init__(self,
                  in_relevance_zip_file='relevance.output.zip',
                  in_product_zip_file='database.output.product.zip',
-                 out_file='products.output.csv'):
+                 out_file='output.csv'):
         """
         ExtractProducts accepts the output of a run of ExtractRelevantWebsites
         and queries the Product classifier for each product in a valid website.
@@ -44,8 +44,31 @@ class ExtractProducts(object):
         api.vw.close()
         del api
 
-        with open('relevance.output.tmp' ,'w+') as tmp:
-            json.dump(products, tmp)
+        # This is a temporary fix to output data for scraping as implemented
+        csv_output.read_csv(output, sep='\t')
+
+        assert len(relevance_json_data) == len(products), "Number of product sets do not match number of relevant websites!"
+
+        # loop through relevant websites, with their products, add to data frame
+        rows = []
+        for website, product in zip(relevance_json_data, products):
+            row_dict = {}
+            row_dict.update("Business Name"=website['Business Name'],
+                            "Region"=website['Region'],
+                            "Associated Products"=product)
+
+            rows.append()
+
+        csv_output.append(pd.DataFrame(rows))
+
+        csv_output.to_csv(output, sep='\t', index=False)
+
+        # done
+
+
+
+        #with open('relevance.output.tmp' ,'w+') as tmp:
+        #    json.dump(products, tmp)
 
         # do something with pandas here
 
