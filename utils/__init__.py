@@ -308,6 +308,7 @@ class WebsiteBagOfKeyphrases(object):
             html = requests.get(url, timeout=self.timeout).text
         except requests.exceptions.RequestException as e:
             html = 'REQUEST_TIMED_OUT_' + '(' + url + ')'
+        text = self.get_text(html)
 
         processed_text = textacy.preprocess.preprocess_text(text,
                                                             lowercase=True,
