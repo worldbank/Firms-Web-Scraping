@@ -30,7 +30,7 @@ git clone https://github.com/worldbank/Firms-Web-Scraping
 echo
 
 echo '(6) Installing Python 3 requirements for Firms Web Scraping into "firms" virtual environment'
-virtualenv -q -p python3 firms
+virtualenv -q -p python3 ../../../firms
 firms/bin/pip install -r Firms-Web-Scraping/requirements.txt
 echo
 
