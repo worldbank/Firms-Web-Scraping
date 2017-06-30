@@ -5,6 +5,7 @@ from fuzzywuzzy import process
 import textacy
 import requests
 import pandas as pd
+from urllib.parse import urlsplit
 import logging
 import json
 import re
@@ -375,6 +376,10 @@ class GooglePlacesAccess(object):
         # okay take top n results
         unique_results = unique_results[:max_per_business_name]
 
+        # take only the net location, sometimes we get funky directories that don't resolve
+        for result in unique_results:
+           url = urlsplit(result['website'])
+           result['website'] = url.scheme + '://' +  url.netloc
         return unique_results
 
     # todo: requires rate limiting on loop

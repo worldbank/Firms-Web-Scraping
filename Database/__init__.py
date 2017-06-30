@@ -49,6 +49,10 @@ class Stage1(object):
 
         # Generate features for the Website Relevance task, save as zip for Active Learning training
         # and follow on processing
+
+        #import ipdb
+        #ipdb.set_trace()
+
         self.mytable.push(getter=self.mytable.feature_getter,
                           sink=self.mysink)
 
@@ -98,14 +102,16 @@ class Stage1(object):
 
         def feature_list_to_features(my_json):
             """
-            For fixing up product lists
+            For fixing up product lists, expand array of features into rows per element
             """
+            max_feature_length = 100 # some keyphrases get crazy long
+
             ret = []
             for business in my_json:
                 for feature in business['meta']['features']:
-                    row = {'meta':{'features': feature},
+                    row = {'meta':{'features': feature[:max_feature_length]},
                            'business_name':business['business_name'],
-                           'target_id':hash(business['business_name']+feature),
+                           'target_id':hash(business['business_name']+feature[:max_feature_length]),
                            'region': business['region'],
                            'primary_description':business['primary_description'],
                            'utc_timestamp': business['utc_timestamp'],
