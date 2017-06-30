@@ -23,6 +23,9 @@ class Stage1(object):
         if not input_file:
             self.input_file = 'input.csv'
 
+        import ipdb
+        ipdb.set_trace()
+
         self.stage1_output_intermediate_filename = 'sink.json.intermediate'
         self.stage1_output_final_filename = 'stage1.json'
 
@@ -39,7 +42,7 @@ class Stage1(object):
                                           featurizer= self.bagofkeyphrases)
 
         self.mysink = JsonSink(file_name = self.stage1_output_intermediate_filename)
-        self.myproductsink = JsonSink(file_name = self.product_stage1_output_intermediate_filename)
+        self.myproductsink = JsonSink(log_name = "Product Sink", file_name = self.product_stage1_output_intermediate_filename)
 
     def run(self):
         """
@@ -50,8 +53,6 @@ class Stage1(object):
         # Generate features for the Website Relevance task, save as zip for Active Learning training
         # and follow on processing
 
-        #import ipdb
-        #ipdb.set_trace()
 
         self.mytable.push(getter=self.mytable.feature_getter,
                           sink=self.mysink)
