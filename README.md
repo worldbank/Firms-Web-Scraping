@@ -7,6 +7,9 @@ The system initally requires a training phase for its _oracles_, as illustrated 
 
 [https://github.com/worldbank/Firms-Web-Scraping/blob/master/utils/examples/start_phase.png]
 
+![Start Phase](https://raw.github.com/worldbank/Firms-Web-Scraping/blob/master/utils/examples/start_phase.png)
+
+
 Once started the oracles are trained the system can enter a general input phase, where it executes the _Go_ and _Ongoing Evaluation_ phases, as illustrated below:
 
 !(image of the Go and Evaluation phases and their interconnection)[[https://github.com/worldbank/Firms-Web-Scraping/blob/master/utils/examples/do_evaluation_phase.png]
