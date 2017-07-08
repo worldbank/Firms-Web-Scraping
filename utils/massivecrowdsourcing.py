@@ -32,9 +32,9 @@ class MassiveCrowdSourcing(object):
                  t=1/3,
                  f=2/3,
                  sj=0.5,
-                 c=0.27,
+                 c=None,
                  r=None,
-                 e=0.18,
+                 e=None,
                  idx=3,
                  wage_per_min=0.18):
 
@@ -44,9 +44,10 @@ class MassiveCrowdSourcing(object):
 
         # variables we can set optimally given the paper above
         # ... requires one of them to be fixed
-        self.e = wage_per_min # assume 1 minute of time to verify
-        self.c = self.c_min(e=self.e)
-        self.total_reward = self.reward_min(i=idx)
+        if not e or not c:
+            self.e = wage_per_min # assume 1 minute of time to verify
+            self.c = self.c_min(e=self.e)
+            self.total_reward = self.reward_min(i=idx)
 
     def reward_for_node_i(self, i=2, reward=None):
         """
