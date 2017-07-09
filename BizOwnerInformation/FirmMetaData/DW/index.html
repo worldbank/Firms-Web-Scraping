@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biz Info MTurk HIT</title>
+
+<!-- Bootstrap -->
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/custom.css" rel="stylesheet">
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+<!--The following script tag downloads a font from the Adobe Edge Web Fonts server for use within the web page. We recommend that you do not modify it.-->
+<script>var __adobewebfontsappname__="dreamweaver"</script>
+<script src="http://use.edgefonts.net/abril-fatface:n4:default.js" type="text/javascript"></script>
+
+</head>
+<body>
+<div class="row">
+  <div class="col-md-4 col-md-offset-2 table-bordered">
+    <div>
+     <form>
+      <div class="input-group"><span id="addon1" class="input-group-addon glyphicon glyphicon-user"></span>
+        <input name="Self_MTurk_ID" type="text" required class="form-control" id="Self_MTurk_ID" placeholder="Enter your MTurk ID (alphanumeric)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+      </div>
+      <input name="SubmitButton" type="submit" />
+	</form>
+      <hr/>
+      <div class="bs-callout bs-callout-primary">
+		<h4>Business Name:</h4> 
+     	<h3>{{business_name}}</h3>
+      </div>
+      <hr/>
+	  <div class="bs-callout bs-callout-info">
+			<h4>Business Region:</h4>
+     	<h3>{{business_region}</h3>
+	  </div>
+      <hr/>
+      <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
+		<button type="button" class="btn btn-primary">I Want To Submit {{business_name}} Information</button>
+		<button type="button" class="btn btn-primary">I Want To Submit A Referral</button>
+      </div>
+            
+    </div>
+  </div>
+  <div class="col-md-4 table-bordered">
+    <div class="panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title">HIT Bonus Options</h3>
+      </div>
+      <div class="options">
+        <p><strong>Submit Business Info:</strong> If you find verified {{business name}} information: {{award amt}}</p>
+        <p><b>Submit A Referral</b> If you refer a MTurker that directly or indirectly (via a referall) submits verified {{business name}} information: up to {{max referral award amount}} </p>
+      </div>
+    </div>
+    <div class="panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title">HIT Instructions</h3>
+      </div>
+      <div class="panel-body options">
+        <p>Fill in your MTurk ID so that we can pay you a bonus for successful completion.</p>
+        <p>You can complete this HIT in one of two ways:</p>
+        <ul>
+        	<li>Identify people in charge of {{business name}} (located in {{region}}) by googling. Click on Submit Information to submit. Submission will be verified.</li>
+        	<li>Refer up to five (5) MTurkers, with MTurk IDs, by clicking on Submit A Referral. Referral direct or indirect submissions will be verified.</li>
+		</ul>
+      </div>
+    </div>
+    <div class="panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title">HIT Purpose</h3>
+      </div>
+      <div class="panel-body options">
+        <p> To identify people in charge of a hard to find business in the given region.</p>
+</div>
+    </div>
+</div>
+</div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) --> 
+<!-- Include all compiled plugins (below), or include individual files as needed --> 
+</body>
+</html>
