@@ -23,14 +23,9 @@
 </head>
 <body>
 <div class="row">
+ <div>
   <div class="col-md-4 col-md-offset-2 table-bordered">
-    <div>
-     <form>
-      <div class="input-group"><span id="addon1" class="input-group-addon glyphicon glyphicon-user"></span>
-        <input name="Self_MTurk_ID" type="text" required class="form-control" id="Self_MTurk_ID" placeholder="Enter your MTurk ID (alphanumeric)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
-      </div>
-      <input name="SubmitButton" type="submit" />
-	</form>
+     <h3>Google For Business Information</h3>
       <hr/>
       <div class="bs-callout bs-callout-primary">
 		<h4>Business Name:</h4> 
@@ -43,13 +38,14 @@
 	  </div>
       <hr/>
       <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
-		<button type="button" class="btn btn-primary">I Want To Submit {{business_name}} Information</button>
-		<button type="button" class="btn btn-primary">I Want To Submit A Referral</button>
+		<button type="button" data-to class="btn btn-primary" data-toggle="modal" data-target="#myModal">I Want To Submit {{business_name}} Information</button>
+		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">I Want To Submit A Referral(s)</button>
       </div>
             
     </div>
   </div>
   <div class="col-md-4 table-bordered">
+   <div>
     <div class="panel panel-info">
       <div class="panel-heading">
         <h3 class="panel-title">HIT Bonus Options</h3>
@@ -64,7 +60,6 @@
         <h3 class="panel-title">HIT Instructions</h3>
       </div>
       <div class="panel-body options">
-        <p>Fill in your MTurk ID so that we can pay you a bonus for successful completion.</p>
         <p>You can complete this HIT in one of two ways:</p>
         <ul>
         	<li>Identify people in charge of {{business name}} (located in {{region}}) by googling. Click on Submit Information to submit. Submission will be verified.</li>
@@ -78,11 +73,90 @@
       </div>
       <div class="panel-body options">
         <p> To identify people in charge of a hard to find business in the given region.</p>
-</div>
+	  </div>
     </div>
 </div>
+	</div>
 </div>
+
+<div class="container demo">
+<!-- Right Modal for Referrals-->
+<div class="modal right fade" id="myModal2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel2">Submit Referrals</h4>
+			</div>
+
+			<div class="modal-body">
+			<p>If you are unable or do not have the time to locate information on {{business name}} you may refer up to five (5) MTurkers to find it on your behalf.</p>
+  		 	<p>You will be awarded up to {{max referral award amount}} and the MTurker that found the information will be awarded {{award amt}}.
+			</p>
+   		 	<p>These HITs close when at least one person among the batch completes a HIT.</p>
+		    <form>
+			    <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
+     			
+      			<div class="input-group"><span id="addon2" class="input-group-addon glyphicon glyphicon-user"></span>
+        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral1" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+      			</div>
+
+				<div class="input-group"><span id="addon3" class="input-group-addon glyphicon glyphicon-user"></span>
+        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral2" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+      			</div>      			      			
+
+				<div class="input-group"><span id="addon4" class="input-group-addon glyphicon glyphicon-user"></span>
+        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral3" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+      			</div>      			      			
+     			      			
+				<div class="input-group"><span id="addon5" class="input-group-addon glyphicon glyphicon-user"></span>
+        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral4" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+      			</div>
+      			
+				<div class="input-group"><span id="addon6" class="input-group-addon glyphicon glyphicon-user"></span>
+        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral5" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+      			</div>      			      			
+      			 			
+      			<input name="SubmitButton" type="submit" label="foo"/>&emsp;You may refer up to five (5) MTurkers*
+      			</div>
+			</form>
+			<div class="modal-footer pull-left">
+				<p>* new referral submissions will overwrite old referral submissions</p>
+			</div>
+			
+			</div>
+
+		</div><!-- modal-content -->
+	</div><!-- modal-dialog -->
+</div><!-- modal -->
+
+<!-- Right Modal for Business Informatoin-->
+<div class="modal right fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">Submit Business Information</h4>
+			</div>
+			<div class="modal-body">
+				<p>Submit Business Information</p>
+				<p>Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+				</p>
+			</div>
+
+		</div><!-- modal-content -->
+	</div><!-- modal-dialog -->
+</div><!-- modal -->
+
+ver 0.0.1
+</div><!-- container -->
+
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) --> 
 <!-- Include all compiled plugins (below), or include individual files as needed --> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
 </body>
 </html>
