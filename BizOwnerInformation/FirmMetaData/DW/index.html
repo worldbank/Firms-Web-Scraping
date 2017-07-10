@@ -7,8 +7,14 @@
 <title>Biz Info MTurk HIT</title>
 
 <!-- Bootstrap -->
-<link href="css/bootstrap.css" rel="stylesheet">
-<link href="css/custom.css" rel="stylesheet">
+<!-- this is for Jinja to template for the css/boostrap, custom files -->
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap.css') }}"> 
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='custom.css') }}"> 
+
+<!--
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet"> 
+-->
 
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -29,16 +35,16 @@
       <hr/>
       <div class="bs-callout bs-callout-primary">
 		<h4>Business Name:</h4> 
-     	<h3>{{business_name}}</h3>
+     	<h3>{{ business.name }}</h3>
       </div>
       <hr/>
 	  <div class="bs-callout bs-callout-info">
 			<h4>Business Region:</h4>
-     	<h3>{{business_region}</h3>
+            <h3>{{business.region}}</h3>
 	  </div>
       <hr/>
       <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
-		<button type="button" data-to class="btn btn-primary" data-toggle="modal" data-target="#myModal">I Want To Submit {{business_name}} Information</button>
+		<button type="button" data-to class="btn btn-primary" data-toggle="modal" data-target="#myModal">I Want To Submit {{business.name}} Information</button>
 		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">I Want To Submit A Referral(s)</button>
       </div>
             
@@ -51,8 +57,8 @@
         <h3 class="panel-title">HIT Bonus Options</h3>
       </div>
       <div class="options">
-        <p><strong>Submit Business Info:</strong> If you find verified {{business name}} information: {{award amt}}</p>
-        <p><b>Submit A Referral</b> If you refer a MTurker that directly or indirectly (via a referall) submits verified {{business name}} information: up to {{max referral award amount}} </p>
+          <p><strong>Submit Business Info:</strong> If you find verified {{business.name}} information: <b>${{award.amt}}</b></p>
+          <p><b>Submit A Referral</b> If you refer a MTurker that directly or indirectly (via a referall) submits verified {{business.name}} information: up to <b>${{award.max_referral_amt}}</b> </p>
       </div>
     </div>
     <div class="panel panel-info">
@@ -62,7 +68,7 @@
       <div class="panel-body options">
         <p>You can complete this HIT in one of two ways:</p>
         <ul>
-        	<li>Identify people in charge of {{business name}} (located in {{region}}) by googling. Click on Submit Information to submit. Submission will be verified.</li>
+        	<li>Identify people in charge of {{business.name}} (located in {{business.region}}) by googling. Click on Submit Information to submit. Submission will be verified.</li>
         	<li>Refer up to five (5) MTurkers, with MTurk IDs, by clicking on Submit A Referral. Referral direct or indirect submissions will be verified.</li>
 		</ul>
       </div>
@@ -91,8 +97,8 @@
 			</div>
 
 			<div class="modal-body">
-			<p>If you are unable or do not have the time to locate information on {{business name}} you may refer up to five (5) MTurkers to find it on your behalf.</p>
-  		 	<p>You will be awarded up to {{max referral award amount}} and the MTurker that found the information will be awarded {{award amt}}.
+			<p>If you are unable or do not have the time to locate information on {{business.name}} you may refer up to five (5) MTurkers to find it on your behalf.</p>
+            <p>You will be awarded up to <b>${{award.max_referral_amt}}</b> and the MTurker that found the information will be awarded <b>${{award.amt}}</b>.
 			</p>
    		 	<p>These HITs close when at least one person among the batch completes a HIT.</p>
 		    <form>
