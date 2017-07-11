@@ -43,6 +43,7 @@
             <h3>{{business.region}}</h3>
 	  </div>
       <hr/>
+
       <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
 		<button type="button" data-to class="btn btn-primary" data-toggle="modal" data-target="#myModal">I Want To Submit {{business.name}} Information</button>
 		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">I Want To Submit A Referral(s)</button>
@@ -66,10 +67,11 @@
         <h3 class="panel-title">HIT Instructions</h3>
       </div>
       <div class="panel-body options">
-        <p>You can complete this HIT in one of two ways:</p>
+        <p>First, enter your MTurk ID in the field to your left</p>
+        <p>Then you can complete this HIT in one of two ways:</p>
         <ul>
         	<li>Identify people in charge of {{business.name}} (located in {{business.region}}) by googling. Click on Submit Information to submit. Submission will be verified.</li>
-        	<li>Refer up to five (5) MTurkers, with MTurk IDs, by clicking on Submit A Referral. Referral direct or indirect submissions will be verified.</li>
+        	<li>Refer up to three (3) MTurkers, with MTurk IDs, by clicking on Submit A Referral. Referral direct or indirect submissions will be verified.</li>
 		</ul>
       </div>
     </div>
@@ -90,45 +92,52 @@
 <div class="modal right fade" id="myModal2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
-
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 				<h4 class="modal-title" id="myModalLabel2">Submit Referrals</h4>
 			</div>
 
 			<div class="modal-body">
-			<p>If you are unable or do not have the time to locate information on {{business.name}} you may refer up to five (5) MTurkers to find it on your behalf.</p>
-            <p>You will be awarded up to <b>${{award.max_referral_amt}}</b> and the MTurker that found the information will be awarded <b>${{award.amt}}</b>.
-			</p>
-   		 	<p>These HITs close when at least one person among the batch completes a HIT.</p>
-		    <form>
+                <i>If</i> you are unable or do not have the time to locate information on {{business.name}} you may refer up to three (3) MTurkers to find it on your behalf.</p>
+            <p>For verified information, you could be awarded up to <b>${{award.max_referral_amt}}</b> and the MTurker that found the information will be awarded <b>${{award.amt}}</b>. These HITs close when at least one person among the batch completes a HIT. The HIT will close after a period of time if no one finds anything.</p>
+            <hr/>
+
+            <form id="referral" action="{{ url_for('hit') }}" method="POST">
 			    <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
+                <b>Step 1: Fill in <b>your</b> MTurk ID</b>
+
+                  <div class="input-group"><span id="addon2" class="input-group-addon glyphicon glyphicon-certificate"></span>
+                  <input name="My MTurkID" type="text" required class="form-control" id="MyTurkID" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+                  </div>
+
+                <hr/>
+
+                <b>Step 2: Refer up to up to three (3) other MTurkers:</b>
      			
       			<div class="input-group"><span id="addon2" class="input-group-addon glyphicon glyphicon-user"></span>
-        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral1" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+        		<input name="MTurk ID 1" type="text"  class="form-control" id="referral1" placeholder="Enter a MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
       			</div>
 
 				<div class="input-group"><span id="addon3" class="input-group-addon glyphicon glyphicon-user"></span>
-        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral2" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+        		<input name="MTurk ID 2" type="text"  class="form-control" id="referral2" placeholder="Enter a MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
       			</div>      			      			
 
 				<div class="input-group"><span id="addon4" class="input-group-addon glyphicon glyphicon-user"></span>
-        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral3" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+        		<input name="MTurk ID 3" type="text"  class="form-control" id="referral3" placeholder="Enter a MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
       			</div>      			      			
-     			      			
-				<div class="input-group"><span id="addon5" class="input-group-addon glyphicon glyphicon-user"></span>
-        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral4" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
-      			</div>
-      			
-				<div class="input-group"><span id="addon6" class="input-group-addon glyphicon glyphicon-user"></span>
-        		<input name="Self_MTurk_ID" type="text"  class="form-control" id="referral5" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
-      			</div>      			      			
-      			 			
-      			<input name="SubmitButton" type="submit" label="foo"/>&emsp;You may refer up to five (5) MTurkers*
+
+                <hr/>
+                <b>Step 3: Double check entered MTurkIDs and press <i>submit*</i>.</b>
+
+                <div>
+                    <input type="submit" value="submit"/>
+                </div>
+
       			</div>
 			</form>
-			<div class="modal-footer pull-left">
-				<p>* new referral submissions will overwrite old referral submissions</p>
+            </p>
+			<div class="modal-footer pull-left pull-bottom">
+				<p>* You may only submit referrals once for this HIT
 			</div>
 			
 			</div>
@@ -137,7 +146,7 @@
 	</div><!-- modal-dialog -->
 </div><!-- modal -->
 
-<!-- Right Modal for Business Informatoin-->
+<!-- Right Modal for Business Information-->
 <div class="modal right fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
