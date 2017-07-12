@@ -38,33 +38,23 @@ api_referral_items = set(['My MTurkID',
 api_collection_names = {'MTurkInfo':'m_turk_info',
                         'Referral':'referral'}
 
-class MTurkInfo(db.Document):
+class MTurk(db.Document):
     mturk_id = db.StringField(max_length=max_length)
     has_referred = db.BinaryField(False)
     has_submitted = db.BinaryField(False)
     verification_status = db.IntField(api_verification_status['NO VERIFICATION']) # interface with api_verification_status
 
-class TEST_MTurkInfo(db.Document):
+class MTurkInfo(db.Document):
     mturk_id = db.StringField(max_length=max_length)
 
-    referred_by = db.ListField(db.ReferenceField(MTurkInfo)) # ordered list of referrees, extended atomically by other mturkers
-    referred_to = db.ListField(db.ReferenceField(MTurkInfo)) # ordered list of referrers, set once
+    referred_by = db.ListField(db.ReferenceField(MTurk)) # ordered list of referrees, extended atomically by other mturkers
+    referred_to = db.ListField(db.ReferenceField(MTurk)) # ordered list of referrers, set once
 
     has_submitted = db.BinaryField(False)
     verification_status = db.IntField(api_verification_status['NO VERIFICATION']) # interface with api_verification_status
 
 class PartipicatedBusinessRegion(db.Document):
     businessregion = db.DictField() # 'business/region' dictionary into mturk ids
-
-#### ------------------------------
-class Referral(db.Document):
-    referred = db.ReferenceField(MTurkInfo)
-    referrees = db.ListField(db.ReferenceField(MTurkInfo)) # ordered list of referrees
-
-class Submission(db.Document):
-    mturk_id = db.ReferenceField(MTurkInfo)
-    business_info = db.DictField() # all(key in api_submission_roles for key in business_info[:N])
-#### ------------------------------
 
 def validate_submission(form_items):
     ret = False
@@ -105,9 +95,9 @@ def hit():
 
             # ... first we add the mturker's id so she's in the network
             my_mturk_id = request.form['My MTurkID']
-            TEST_MTurkInfo.objects(mturk_id=my_mturk_id).update_one(upsert=True,
+            MTurkInfo.objects(mturk_id=my_mturk_id).update_one(upsert=True,
                                                                     set__mturk_id=my_mturk_id)
-            mturk_id_referred_by = TEST_MTurkInfo.objects.get(mturk_id=my_mturk_id)
+            mturk_id_referred_by = MTurkInfo.objects.get(mturk_id=my_mturk_id)
 
             text_id_referred_to = [mturk_id for key, mturk_id in request.form.items() if not mturk_id == my_mturk_id]
 
@@ -120,14 +110,16 @@ def hit():
                 for text_id in text_id_referred_to:
                     # upsert the id and add/create it's referred_by list; note .id, critical for constructing
                     # a reference
-                    TEST_MTurkInfo.objects(mturk_id=text_id).update_one(upsert=True,
+                    MTurkInfo.objects(mturk_id=text_id).update_one(upsert=True,
                                                                         set__mturk_id=text_id,
                                                                         push__referred_by = mturk_id_referred_by.id)
 
-                    mturk_id_referred_to = TEST_MTurkInfo.objects.get(mturk_id=text_id)
+                    mturk_id_referred_to = MTurkInfo.objects.get(mturk_id=text_id)
                     # update the mturker's referred_to list too
-                    TEST_MTurkInfo.objects(mturk_id=my_mturk_id).update_one(upsert=True,
+                    MTurkInfo.objects(mturk_id=my_mturk_id).update_one(upsert=True,
                                                                             push__referred_to = mturk_id_referred_to.id)
+
+
 
             # ... so now we've updated the social network and everyboyd has references and refers to others
             # we will use this information when someone finds business information and pay out to their
