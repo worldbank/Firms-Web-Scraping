@@ -44,6 +44,19 @@ class MTurkInfo(db.Document):
     has_submitted = db.BinaryField(False)
     verification_status = db.IntField(api_verification_status['NO VERIFICATION']) # interface with api_verification_status
 
+class TEST_MTurkInfo(db.Document):
+    mturk_id = db.StringField(max_length=max_length)
+
+    referred_by = db.ListField(db.ReferenceField(MTurkInfo)) # ordered list of referrees, extended atomically by other mturkers
+    referred_to = db.ListField(db.ReferenceField(MTurkInfo)) # ordered list of referrers, set once
+
+    has_submitted = db.BinaryField(False)
+    verification_status = db.IntField(api_verification_status['NO VERIFICATION']) # interface with api_verification_status
+
+class PartipicatedBusinessRegion(db.Document):
+    businessregion = db.DictField() # 'business/region' dictionary into mturk ids
+
+#### ------------------------------
 class Referral(db.Document):
     referred = db.ReferenceField(MTurkInfo)
     referrees = db.ListField(db.ReferenceField(MTurkInfo)) # ordered list of referrees
@@ -51,6 +64,7 @@ class Referral(db.Document):
 class Submission(db.Document):
     mturk_id = db.ReferenceField(MTurkInfo)
     business_info = db.DictField() # all(key in api_submission_roles for key in business_info[:N])
+#### ------------------------------
 
 def validate_submission(form_items):
     ret = False
@@ -58,6 +72,10 @@ def validate_submission(form_items):
 
 def validate_referral(form_items):
     ret = False
+
+    if True: # check that user has not participated in this Business/Regiona
+        # look into PartipicatedBusinessRegion
+        pass
     # check that keys are as expected
     ret = all(key in api_referral_items for key in form_items.keys())
     if ret: # ... great, check that mturk_ids are all alphanumeric
@@ -70,20 +88,50 @@ def hit():
     error = None
     app.logger.info('\t request.method: '+request.method)
     if request.method == 'POST':
-        # validate the input, upsert it and update any referall chains
-        # as neccesary
         app.logger.info(request.form)
+
         if validate_referral(request.form):
             app.logger.info('Stuff is legit')
 
-            for key, mturk_id in request.form.items():
-                if not '' == mturk_id:
-                    app.logger.info( (key, mturk_id) )
-                    # see: https://stackoverflow.com/questions/24738617/mongoengine-update-oneupsert-vs-deprecated-get-or-create
-                    MTurkInfo.objects(mturk_id=mturk_id).update_one(upsert=True,
-                                                                    set__mturk_id=mturk_id)
+            # So, in referral based crowdsourcing, we can view HITs as adding to the
+            # social network people directly or indirectly (by referring others) searching for business information
+            #
+            # Once a node finds business information we need to pay out to its sub network of MTurkers
+            # according to the referal scheme.
 
-            referrer = request.form['My MTurkID']
+            # The first then we need to do is some housekeeping: we need to ensure that *every*
+            # node referred exists within the network so that we can modify its properities as needed
+
+
+            # ... first we add the mturker's id so she's in the network
+            my_mturk_id = request.form['My MTurkID']
+            TEST_MTurkInfo.objects(mturk_id=my_mturk_id).update_one(upsert=True,
+                                                                    set__mturk_id=my_mturk_id)
+            mturk_id_referred_by = TEST_MTurkInfo.objects.get(mturk_id=my_mturk_id)
+
+            text_id_referred_to = [mturk_id for key, mturk_id in request.form.items() if not mturk_id == my_mturk_id]
+
+            app.logger.info((my_mturk_id, text_id_referred_to))
+
+            # (it is possible that a malicious user could refer to their self, check against that)
+            if text_id_referred_to:
+                # ... then we add the mturker id's that she refers too while aslo updating thier
+                # referred_by lists with her
+                for text_id in text_id_referred_to:
+                    # upsert the id and add/create it's referred_by list; note .id, critical for constructing
+                    # a reference
+                    TEST_MTurkInfo.objects(mturk_id=text_id).update_one(upsert=True,
+                                                                        set__mturk_id=text_id,
+                                                                        push__referred_by = mturk_id_referred_by.id)
+
+                    mturk_id_referred_to = TEST_MTurkInfo.objects.get(mturk_id=text_id)
+                    # update the mturker's referred_to list too
+                    TEST_MTurkInfo.objects(mturk_id=my_mturk_id).update_one(upsert=True,
+                                                                            push__referred_to = mturk_id_referred_to.id)
+
+            # ... so now we've updated the social network and everyboyd has references and refers to others
+            # we will use this information when someone finds business information and pay out to their
+            # social network
 
     business = {'name':'Bailey Park Thriftway', 'region':'Battle Creek, MI'}
     award = {'amt':4.56, 'max_referral_amt':2.13}
@@ -92,6 +140,10 @@ def hit():
 
     return render_template('HIT.html', business=business, award=award)
 
+@app.route('/info', methods=['POST'])
+def info():
+    # When a MTurker submits info, yay!
+    return
 
 
 # tutorial route code; remove when done

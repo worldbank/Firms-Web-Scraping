@@ -8,5 +8,6 @@ flaskr.egg-info/requires.txt
 flaskr.egg-info/top_level.txt
 flaskr/static/bootstrap.css
 flaskr/static/custom.css
+flaskr/templates/HIT.html
 flaskr/templates/layout.html
 flaskr/templates/show_entries.html
