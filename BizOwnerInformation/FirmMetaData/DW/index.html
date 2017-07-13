@@ -10,6 +10,7 @@
 <!-- this is for Jinja to template for the css/boostrap, custom files -->
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap.css') }}"> 
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='custom.css') }}"> 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
 <!--
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -155,33 +156,105 @@
 				<h4 class="modal-title" id="myModalLabel">Submit Business Information</h4>
 			</div>
 			<div class="modal-body">
-				<p>Submit Business Information</p>
-
+                <p><i>We</i> will verify your business information below against provided the link(s) and other sources. If correct, you will be awarded a bonus of <b>${{award.amt}}</b>. Those who referred you may be awarded a bonus of up to <b>${{award.max_referral_amt}}</b>.</p>
             <form id="referral" action="{{ url_for('submit_info') }}" method="POST">
 			    <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
                   <b>Step 1: Enter your MTurk ID</b>
 
                   <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-certificate"></span>
-                  <input name="My MTurk ID" type="text" required class="form-control" id="MyTurkID" placeholder="Enter your MTurk ID" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+                      <input name="My MTurk ID" type="text" required class="form-control" id="MyTurkID" placeholder="Enter your MTurk ID" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1"> 
                   </div>
 
-                  <b>Step 2: For people in charge of {{business.name}} provide information on up to 3 roles</b>
+                  <b>Step 2: For people in charge of {{business.name}} provide information on up to 3 roles. </b>
 
-                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-certificate"></span>
-                  <input name="CEO_Owner" type="text" required class="form-control" id="MyTurkID" placeholder="Enter the CEO/Owner" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+                <div>
+                  <table>
+                      <tr>
+                          <td class="bs-callout bs-callout-default" style="padding:5px"  colspan=3 bgcolor='lightgray'> Role: CEO/Owner
+                          </td>
+                      </tr>
+                      <tr>
+                          <td>
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-list-alt"></span>
+                  <input name="CEO_Owner" type="text" class="form-control" id="MyTurkID" placeholder="Enter the CEO/Owner" autocomplete="on" maxlength="21" aria-describedby="addon1"> 
                   </div>
+                          </td>
+                          <td>
+                              &emsp; <!-- cheap hack for spacing -->
+                          </td>
+                          <td>
+    
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-link"></span>
+                  <input name="URL_CEO_Owner" type="url" class="form-control" id="MyTurkID" placeholder="Provide a URL for this role" />
+                  </div>
+                          </td>
+                      </tr>
+                  </table>
+                </div>
 
-                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-certificate"></span>
-                  <input name="Employee" type="text"  class="form-control" id="MyTurkID" placeholder="Enter an employee" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
-                  </div>
 
-                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-certificate"></span>
-                  <input name="Manager" type="text"  class="form-control" id="MyTurkID" placeholder="Enter the manager" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+                <div>
+                  <table>
+                      <tr>
+                          <td class="bs-callout bs-callout-default" style="padding:5px"  colspan=3 bgcolor='lightgray'> Role: Manager
+                          </td>
+                      </tr>
+                      <tr>
+                          <td>
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-list-alt"></span>
+                  <input name="Manager" type="text" class="form-control" id="MyTurkID" placeholder="Enter a manager" autocomplete="on" maxlength="21" aria-describedby="addon1"> 
                   </div>
+                          </td>
+                          <td>
+                              &emsp; <!-- cheap hack for spacing -->
+                          </td>
+                          <td>
+    
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-link"></span>
+                  <input name="URL_Manager" type="url" class="form-control" id="MyTurkID" placeholder="Provide a URL for this role" />
+                  </div>
+                          </td>
+                      </tr>
+                  </table>
+                </div>
+
+                <div>
+                  <table>
+                      <tr>
+                          <td class="bs-callout bs-callout-default" style="padding:5px"  colspan=3 bgcolor='lightgray'> Role: Employee
+                          </td>
+                      </tr>
+                      <tr>
+                          <td>
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-list-alt"></span>
+                  <input name="Employee" type="text" class="form-control" id="MyTurkID" placeholder="Enter an employee" autocomplete="on" maxlength="21" aria-describedby="addon1"> 
+                  </div>
+                          </td>
+                          <td>
+                              &emsp; <!-- cheap hack for spacing -->
+                          </td>
+                          <td>
+    
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-link"></span>
+                  <input name="URL_Employee" type="url" class="form-control" id="MyTurkID" placeholder="Provide a URL for this role" />
+                  </div>
+                          </td>
+                      </tr>
+                  </table>
+                </div>
+
+                <hr/>
+                <b>Step 3: Double check entered Roles, URLs and press <i>submit*</i>.</b>
 
                     <div>
                         <input type="submit" value="submit"/>
                     </div>
+      			</div>
+			</form>
+            </p>
+			<div class="modal-footer pull-left pull-bottom">
+				<p>* You may only submit information once for this HIT
+			</div>
                 </div>
             </form>
 			</div>

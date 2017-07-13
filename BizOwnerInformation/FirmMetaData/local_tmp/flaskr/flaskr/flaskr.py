@@ -30,8 +30,9 @@ api_verification_status = {'NO VERIFICATION': 1,
                            'PENDING VERIFICATION':2,
                            'PASSED VERIFICATION':3,
                            'FAILED VERIFICATION':4}# use slots instead?
-api_submission_roles = set(['CEO/Owner',
-                            'Employee'])
+api_submission_roles = set(['CEO_Owner',
+                            'Employee',
+                            'Manager'])
 api_referral_items = set(['My MTurkID',
                           'MTurk ID 1',
                           'MTurk ID 2',
@@ -67,9 +68,6 @@ def breadthfirstsearch(root):
 
     Essentially, we do breadth first search on the social network root provided.
     This constructs the referral chain that we need to pay out to.
-
-    note: need to yeild 'did a level' to indicate that a level of the tree is
-    completely outputted.
     """
     queue = []
 
@@ -163,6 +161,7 @@ def hit():
             # social network
         return render_template('thank_you.html')
 
+    # Other wise it's their first time here
     business = {'name':'Bailey Park Thriftway', 'region':'Battle Creek, MI'}
     award = {'amt':4.56, 'max_referral_amt':2.13}
 

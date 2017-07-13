@@ -1,6 +1,14 @@
 @charset "UTF-8";
 /* CSS Document */
 
+table {
+    border-spacing: 5% auto;
+}
+
+.bs-callout:hover{
+	filter: brightness(75%);
+}
+
 .btn-group-vertical > button{
 	margin: 5% auto;
 }
