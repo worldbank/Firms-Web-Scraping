@@ -129,10 +129,9 @@
                 <hr/>
                 <b>Step 3: Double check entered MTurkIDs and press <i>submit*</i>.</b>
 
-                <div>
-                    <input type="submit" value="submit"/>
-                </div>
-
+                    <div>
+                        <input type="submit" value="submit"/>
+                    </div>
       			</div>
 			</form>
             </p>
@@ -157,15 +156,41 @@
 			</div>
 			<div class="modal-body">
 				<p>Submit Business Information</p>
-				<p>Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
-				</p>
+
+            <form id="referral" action="{{ url_for('submit_info') }}" method="POST">
+			    <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
+                  <b>Step 1: Enter your MTurk ID</b>
+
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-certificate"></span>
+                  <input name="My MTurk ID" type="text" required class="form-control" id="MyTurkID" placeholder="Enter your MTurk ID" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+                  </div>
+
+                  <b>Step 2: For people in charge of {{business.name}} provide information on up to 3 roles</b>
+
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-certificate"></span>
+                  <input name="CEO_Owner" type="text" required class="form-control" id="MyTurkID" placeholder="Enter the CEO/Owner" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+                  </div>
+
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-certificate"></span>
+                  <input name="Employee" type="text"  class="form-control" id="MyTurkID" placeholder="Enter an employee" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+                  </div>
+
+                  <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-certificate"></span>
+                  <input name="Manager" type="text"  class="form-control" id="MyTurkID" placeholder="Enter the manager" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+                  </div>
+
+                    <div>
+                        <input type="submit" value="submit"/>
+                    </div>
+                </div>
+            </form>
 			</div>
 
 		</div><!-- modal-content -->
 	</div><!-- modal-dialog -->
 </div><!-- modal -->
 
-ver 0.0.1
+ver 0.0.2
 </div><!-- container -->
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) --> 
