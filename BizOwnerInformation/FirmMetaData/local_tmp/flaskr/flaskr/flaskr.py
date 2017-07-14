@@ -190,8 +190,8 @@ def push_biz_regions():
     df = pd.read_csv(app.config['INPUT_FILE'], sep='\t')
     # todo: push .csv to NewBusinessRegion collection
     for cols in df.itertuples():
-        business_name = cols[1]
-        region = cols[2]
+        business_name = cols[1].strip()
+        region = cols[2].strip()
         NewBusinessRegion.objects(business_name=business_name).update_one(upsert=True,
                                                                                  business_name=business_name,
                                                                                  region=region)
