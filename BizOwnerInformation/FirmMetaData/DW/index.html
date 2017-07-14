@@ -101,7 +101,7 @@
 
 			<div class="modal-body">
                 <i>If</i> you are unable or do not have the time to locate information on {{business.name}} you may refer up to three (3) MTurkers to find it on your behalf. These MTurkers will have a chance to do this HIT on a different business.</p>
-            <p>For verified information, you could be awarded up to <b>${{award.max_referral_amt}}</b> and the MTurker that found the information will be awarded <b>${{award.amt}}</b>. These HITs close when at least one person among the batch completes a HIT for the business. The HIT will close after a period of time if no one finds anything.</p>
+            <p>For verified information, you could be awarded bonus up to <b>${{award.max_referral_amt}}</b> and the MTurker that found the information will be awarded a bonus up to <b>${{award.amt}}</b>. These HITs close when at least one person among the batch completes a HIT for the business. The HIT will close after a period of time if no one finds anything.</p>
             <hr/>
 
             <form id="referral" action="{{ url_for('hit') }}" method="POST">
