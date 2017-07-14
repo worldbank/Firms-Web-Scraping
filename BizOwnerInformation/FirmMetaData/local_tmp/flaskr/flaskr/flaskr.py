@@ -1,8 +1,9 @@
 # all the imports
 import os
+import pandas
 from urllib.parse import urlparse
 from bson.objectid import ObjectId # to handle ObjectId weirdness w MongoEngine
-from flask import session
+from flask import session, Response
 from flask import Flask, request, session, g, redirect, url_for, abort, \
              render_template, flash
 from flask_mongoengine import MongoEngine
@@ -21,7 +22,8 @@ app.config.update(dict(
 ))
 
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
-app.config.from_envvar('HIT_MAX_AWARD', silent=True)
+app.config['HIT_MAX_AWARD'] = float(os.environ['HIT_MAX_AWARD'])
+app.config['INPUT_FILE'] = os.environ['INPUT_FILE']
 
 db = MongoEngine(app)
 
@@ -77,6 +79,14 @@ class SubmittedBusinessRegion(db.Document):
     submitter_object_id = db.ReferenceField(MTurkInfo) # can calculate referral chain from this
 
     information = db.DictField() # stores form submission
+    business_name = db.StringField()
+    region = db.StringField()
+
+class NewBusinessRegion(db.Document):
+    """
+    A collection of Business, regions, ingested from the input file.
+    Acted on by an outside process to remove submited businesses that are verified to be good.
+    """
     business_name = db.StringField()
     region = db.StringField()
 
@@ -173,11 +183,29 @@ def validate_referral(form_items):
         ret = all(mturk_id.isalnum() for mturk_id in form_items.values() if not mturk_id == '')
     return ret
 
+
+# pre populate the business, regions
+def push_biz_regions():
+    app.logger.info(app.config['INPUT_FILE'])
+    # todo: push .csv to NewBusinessRegion collection
+
+push_biz_regions()
+
 @app.route('/HIT', methods=['POST', 'GET'])
 @app.route('/hit', methods=['POST', 'GET'])
 def hit():
     error = None
     app.logger.info('\t request.method: '+request.method)
+
+    # prevent user from visiting more than once (backed by cookie; user could clear cookie)
+    if 'visit count' in session:
+        session['visit count'] += 1
+    else:
+        session['visit count'] = 1
+
+    if session['visit count'] > 1:
+        # redirect to thank you page, can only do this hit once!
+        return render_template('thank_you.html')
 
     # If POST, then they're submitting referral information, which we handle ...
     if request.method == 'POST':
@@ -228,13 +256,29 @@ def hit():
         return render_template('thank_you.html')
 
     # todo: pull from MAX AWARD env variable
-    award = {'amt':0.50, 'max_referral_amt':0.25}
+    #award = {'amt':0.50, 'max_referral_amt':0.25}
+    award = {'amt': app.config['HIT_MAX_AWARD'], 'max_referral_amt':app.config['HIT_MAX_AWARD']/2}
+
 
     # Todo: randomly sample from businessregion database
     # Other wise it's their first time here
     business = {'name':'Bailey Park Thriftway', 'region':'Battle Creek, MI'}
 
     # save off what random business, region this turker recieved
+    #
+    # Cyber security note:
+    # note: https://blog.miguelgrinberg.com/post/how-secure-is-the-flask-user-session
+    # Impact:
+    # The session object can be easily reverse engineered; but this would defintely require a malcious user;
+    # such a user would be able to insert any value into the mongodb database for business name/region,
+    # allowing them to submit information on easily found businesses and get max payout for minimal effort
+
+    # Risk:
+    # This hit is limited to one per MTurker by AWS so the impact could only happen once per hit.
+    # What this means is that they could spend the time reverse engineering the hit but is it really worth it
+    # for a measly 50 cents? MTurkers only have one MTurk ID.
+    #
+    # So, for prototype purposes this is okay. The alternative is to use Flask-Session and a server in production
     session['business name'] = business['name']
     session['region'] = business['region']
 

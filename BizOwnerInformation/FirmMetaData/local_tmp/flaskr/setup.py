@@ -8,6 +8,6 @@ setup(
         'flask',
         'flask-mongoengine',
         'flask-wtf',
-        'networkx',
+        'pandas',
     ],
 )
