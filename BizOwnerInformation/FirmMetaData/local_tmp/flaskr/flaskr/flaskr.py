@@ -30,7 +30,8 @@ api_verification_status = {'NO VERIFICATION': 1,
                            'PENDING VERIFICATION':2,
                            'PASSED VERIFICATION':3,
                            'FAILED VERIFICATION':4}# use slots instead?
-api_submission_roles = set(['CEO_Owner',
+api_submission_roles = set(['My MTurk ID'
+                            'CEO_Owner',
                             'Employee',
                             'Manager',
                             'URL_CEO_Owner',
@@ -75,9 +76,6 @@ class SubmittedBusinessRegion(db.Document):
     submitter_object_id = db.ReferenceField(MTurkInfo) # can calculate referral chain from this
 
     information = db.DictField() # stores form submission
-
-class PartipicatedBusinessRegion(db.Document):
-    businessregion = db.DictField() # 'business/region' dictionary into mturk ids
 
 def url_check(url):
     """
@@ -137,6 +135,9 @@ def validate_submission(form_items):
     # check that keys are as expected
     ret = all(key in api_submission_roles for key in form_items.keys())
     if ret: # ... great, now check that names/urls are as expected
+
+        1/0 # force debugger, figure out why a test submission isn't going through
+
         ret = False
         for label, name in form_items.items():
             if name:
@@ -264,6 +265,8 @@ def submit_info():
         SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
                                                                                   set__submitter_object_id=mturk_obj,
                                                                                   set_information=request.form)
+
+        app.logger.info(' after attempt to submit info to SubmittedBusinessRegion collection')
 
     return render_template('thank_you.html')
 
