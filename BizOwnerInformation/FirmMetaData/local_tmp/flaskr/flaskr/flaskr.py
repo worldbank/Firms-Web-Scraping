@@ -2,6 +2,7 @@
 import os
 from urllib.parse import urlparse
 from bson.objectid import ObjectId # to handle ObjectId weirdness w MongoEngine
+from flask import session
 from flask import Flask, request, session, g, redirect, url_for, abort, \
              render_template, flash
 from flask_mongoengine import MongoEngine
@@ -14,7 +15,7 @@ app.config.from_object(__name__) # load config from this file , flaskr.py
 # Load default config and override config from an environment variable
 #    DATABASE=os.path.join(app.root_path, 'flaskr.db'),
 app.config.update(dict(
-    SECRET_KEY='development key',
+    SECRET_KEY='SECRET KEY 123',
     MONGODB_SETTINGS={'DB':'flaskr_db'},
     TESTING=True,
 ))
@@ -30,7 +31,7 @@ api_verification_status = {'NO VERIFICATION': 1,
                            'PENDING VERIFICATION':2,
                            'PASSED VERIFICATION':3,
                            'FAILED VERIFICATION':4}# use slots instead?
-api_submission_roles = set(['My MTurk ID'
+api_submission_roles = set(['My MTurk ID',
                             'CEO_Owner',
                             'Employee',
                             'Manager',
@@ -76,6 +77,8 @@ class SubmittedBusinessRegion(db.Document):
     submitter_object_id = db.ReferenceField(MTurkInfo) # can calculate referral chain from this
 
     information = db.DictField() # stores form submission
+    business_name = db.StringField()
+    region = db.StringField()
 
 def url_check(url):
     """
@@ -136,7 +139,6 @@ def validate_submission(form_items):
     ret = all(key in api_submission_roles for key in form_items.keys())
     if ret: # ... great, now check that names/urls are as expected
 
-        1/0 # force debugger, figure out why a test submission isn't going through
 
         ret = False
         for label, name in form_items.items():
@@ -225,9 +227,19 @@ def hit():
             # social network
         return render_template('thank_you.html')
 
+    # todo: pull from MAX AWARD env variable
+    award = {'amt':0.50, 'max_referral_amt':0.25}
+
+    # Todo: randomly sample from businessregion database
     # Other wise it's their first time here
     business = {'name':'Bailey Park Thriftway', 'region':'Battle Creek, MI'}
-    award = {'amt':4.56, 'max_referral_amt':2.13}
+
+    # save off what random business, region this turker recieved
+    session['business name'] = business['name']
+    session['region'] = business['region']
+
+    # add to session object so that when user submits
+
 
     app.logger.info('\t at HIT endpoint')
 
@@ -242,16 +254,17 @@ def submit_info():
 
     if validate_submission(request.form):
         app.logger.info('Stuff is legit')
-        app.logger.info(list(request.form.keys()))
-
-        mturk_obj = MTurkInfo.objects.get(mturk_id=mturk_id)
-        app.logger.info((mturk_obj, mturk_obj.id))
+        app.logger.info(list(request.form.items()))
 
         ceo = request.form['CEO_Owner']
         url_ceo = request.form['URL_CEO_Owner']
         manager = request.form['Manager']
         employee = request.form['Employee']
         mturk_id = request.form['My MTurk ID']
+
+        mturk_obj = MTurkInfo.objects.get(mturk_id=mturk_id)
+        app.logger.info((mturk_obj, mturk_obj.id))
+
 
         app.logger.info((ceo, manager, employee, url_ceo))
 
@@ -264,7 +277,9 @@ def submit_info():
         # Add submission to BizRegion database
         SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
                                                                                   set__submitter_object_id=mturk_obj,
-                                                                                  set_information=request.form)
+                                                                                  set__information=request.form,
+                                                                                  set__business_name=session['business name'],
+                                                                                  set__region=session['region'])
 
         app.logger.info(' after attempt to submit info to SubmittedBusinessRegion collection')
 
