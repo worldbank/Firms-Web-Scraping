@@ -1,6 +1,7 @@
 # all the imports
 import os
-import pandas
+import string
+import pandas as pd
 from urllib.parse import urlparse
 from bson.objectid import ObjectId # to handle ObjectId weirdness w MongoEngine
 from flask import session, Response
@@ -165,7 +166,7 @@ def validate_submission(form_items):
                 else:
                     # Otherwise we have a human name, want to verify that
                     # get rid of extra spaces w/o regexes wheewww
-                    ret = all([token.isalpha() for token in name])
+                    ret = all([token.isalpha() or token in string.punctuation for token in ''.join(name)])
                     if not ret:
                         break
 
@@ -184,11 +185,16 @@ def validate_referral(form_items):
     return ret
 
 
-# pre populate the business, regions
+# pre populate the business, regions, only adding if new
 def push_biz_regions():
-    app.logger.info(app.config['INPUT_FILE'])
+    df = pd.read_csv(app.config['INPUT_FILE'], sep='\t')
     # todo: push .csv to NewBusinessRegion collection
-
+    for cols in df.itertuples():
+        business_name = cols[1]
+        region = cols[2]
+        NewBusinessRegion.objects(business_name=business_name).update_one(upsert=True,
+                                                                                 business_name=business_name,
+                                                                                 region=region)
 push_biz_regions()
 
 @app.route('/HIT', methods=['POST', 'GET'])
@@ -262,7 +268,9 @@ def hit():
 
     # Todo: randomly sample from businessregion database
     # Other wise it's their first time here
-    business = {'name':'Bailey Park Thriftway', 'region':'Battle Creek, MI'}
+    random_business = next(NewBusinessRegion._get_collection().aggregate([{'$sample':{'size':1}}]))
+    business = {'name': random_business['business_name'],
+                'region': random_business['region']}
 
     # save off what random business, region this turker recieved
     #
@@ -297,7 +305,7 @@ def submit_info():
     app.logger.info(request.form)
 
     if validate_submission(request.form):
-        app.logger.info('Stuff is legit')
+        app.logger.info('Passed Verification!')
         app.logger.info(list(request.form.items()))
 
         ceo = request.form['CEO_Owner']
@@ -306,6 +314,9 @@ def submit_info():
         employee = request.form['Employee']
         mturk_id = request.form['My MTurk ID']
 
+        # insert mturk id (upsert so we skip if already exists)
+        MTurkInfo.objects(mturk_id=mturk_id).update_one(upsert=True,
+                                                        set__mturk_id=mturk_id)
         mturk_obj = MTurkInfo.objects.get(mturk_id=mturk_id)
         app.logger.info((mturk_obj, mturk_obj.id))
 
