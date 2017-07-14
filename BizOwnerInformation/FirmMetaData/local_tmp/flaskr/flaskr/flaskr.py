@@ -1,12 +1,12 @@
 # all the imports
 import os
-import sqlite3
+from urllib.parse import urlparse
 from bson.objectid import ObjectId # to handle ObjectId weirdness w MongoEngine
 from flask import Flask, request, session, g, redirect, url_for, abort, \
              render_template, flash
 from flask_mongoengine import MongoEngine
 
-# import massivecrowdsourcing # how best to handle API style/side functions? See T's webapp?
+# import massivecrowdsourcing # how best to handle API style/side functions?
 
 app = Flask(__name__) # create the application instance :)
 app.config.from_object(__name__) # load config from this file , flaskr.py
@@ -32,7 +32,10 @@ api_verification_status = {'NO VERIFICATION': 1,
                            'FAILED VERIFICATION':4}# use slots instead?
 api_submission_roles = set(['CEO_Owner',
                             'Employee',
-                            'Manager'])
+                            'Manager',
+                            'URL_CEO_Owner',
+                            'URL_Employee',
+                            'URL_Manager'])# not techincally a role but whatever
 api_referral_items = set(['My MTurkID',
                           'MTurk ID 1',
                           'MTurk ID 2',
@@ -55,8 +58,45 @@ class MTurkInfo(db.Document):
     has_submitted = db.BinaryField(False)
     verification_status = db.IntField(api_verification_status['NO VERIFICATION']) # interface with api_verification_status
 
+class SubmittedBusinessRegion(db.Document):
+    """
+    This is a dynamic collection of business names and their regions, populated by
+    the input file given by the path environment variable INPUT_FILE
+
+    It's a dynamic collection because an outside process monitors the collection periodically,
+    pushing unverified businesses to MTurk for verification. Businesses with verified good information
+    are removed from the collection.
+
+    Those businesses that are verified to have incorrect information are left as is, potentially
+    being selected again at random.
+
+    This class assumes only one submission per turker (a MTurker can not submit for multiple HITs)
+    """
+    submitter_object_id = db.ReferenceField(MTurkInfo) # can calculate referral chain from this
+
+    information = db.DictField() # stores form submission
+
 class PartipicatedBusinessRegion(db.Document):
     businessregion = db.DictField() # 'business/region' dictionary into mturk ids
+
+def url_check(url):
+    """
+    Adopted from https://stackoverflow.com/questions/7160737/python-how-to-validate-a-url-in-python-malformed-or-not
+
+    This function is kind of weak in that it'll return True for 'http://www.google' (notice no tld)
+    url validation can get tricky, i recomend exploring Django url validators or finding a more robust library.
+
+    However, for what it's worth, we do url validation client side, by the HTML5 standard, which is pretty robust
+    and this is just a final check. Will not defend against malicious useres submiting urls like `http://www.google`
+    but they won't get a bonus anyway because the crowd will validate their submission as bogus.
+    """
+
+    min_attr = ('scheme' , 'netloc')
+    result = urlparse(url)
+    if all([result.scheme, result.netloc]):
+        return True
+    else:
+        return False
 
 def get_doc(obj):
     return MTurkInfo.objects.with_id(ObjectId(obj.id))# don't know why original OId isn't same type?
@@ -92,7 +132,30 @@ def breadthfirstsearch(root):
     return
 
 def validate_submission(form_items):
-    ret = True
+    ret = False
+
+    # check that keys are as expected
+    ret = all(key in api_submission_roles for key in form_items.keys())
+    if ret: # ... great, now check that names/urls are as expected
+        ret = False
+        for label, name in form_items.items():
+            if name:
+                name = ' '.join(name.split()).strip().split()
+                if 'URL_' in label: # is a URL
+                    # kinda ugly but we split above, but urls won't any spaces
+                    # so we set to first element
+                    name = name[0]
+
+                    ret = url_check(name)
+                    if not ret:
+                        break
+                else:
+                    # Otherwise we have a human name, want to verify that
+                    # get rid of extra spaces w/o regexes wheewww
+                    ret = all([token.isalpha() for token in name])
+                    if not ret:
+                        break
+
     return ret
 
 def validate_referral(form_items):
@@ -180,18 +243,27 @@ def submit_info():
         app.logger.info('Stuff is legit')
         app.logger.info(list(request.form.keys()))
 
+        mturk_obj = MTurkInfo.objects.get(mturk_id=mturk_id)
+        app.logger.info((mturk_obj, mturk_obj.id))
+
         ceo = request.form['CEO_Owner']
+        url_ceo = request.form['URL_CEO_Owner']
         manager = request.form['Manager']
         employee = request.form['Employee']
         mturk_id = request.form['My MTurk ID']
 
-        app.logger.info((ceo, manager, employee))
+        app.logger.info((ceo, manager, employee, url_ceo))
 
-        mturk_obj = MTurkInfo.objects.get(mturk_id=mturk_id)
-        app.logger.info((mturk_obj, mturk_obj.id))
+        # generating the referral path could be a time consuming operation
+        # defer for now, outside verification process can run this
+        # outside process will also intake massivecrowdsourcing too
+        #referral_path = list(breadthfirstsearch(mturk_obj))
+        #app.logger.info(referral_path) # verify, pay out too
 
-        referral_path = list(breadthfirstsearch(mturk_obj))
-        app.logger.info(referral_path) # verify, pay out too
+        # Add submission to BizRegion database
+        SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
+                                                                                  set__submitter_object_id=mturk_obj,
+                                                                                  set_information=request.form)
 
     return render_template('thank_you.html')
 
