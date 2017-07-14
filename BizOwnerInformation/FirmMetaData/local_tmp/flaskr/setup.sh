@@ -17,8 +17,5 @@ sudo systemctl start mongodb
 sudo systemctl status mongodb
 sudo systemctl enable mongodb
 
-echo "... cloning Firm Meta Data repository ..."
-git clone https://github.com/worldbank/Firms-Web-Scraping
-
 echo " ... installing the firm meta data web app"
 pip install -editable BizOwnerInformation/FirmMetaData/local_tmp/flaskr
