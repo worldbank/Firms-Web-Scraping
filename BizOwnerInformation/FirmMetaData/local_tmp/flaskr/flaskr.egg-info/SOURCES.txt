@@ -11,4 +11,3 @@ flaskr/static/custom.css
 flaskr/templates/HIT.html
 flaskr/templates/layout.html
 flaskr/templates/show_entries.html
-flaskr/templates/thank_you.html
