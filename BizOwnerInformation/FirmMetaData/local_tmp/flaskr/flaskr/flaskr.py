@@ -351,3 +351,6 @@ def thank_you():
     app.logger.info('\t Thanks!')
 
     return render_template('thank_you.html')
+
+if __name__ == '__main__':
+    app.run(threaded=True)
