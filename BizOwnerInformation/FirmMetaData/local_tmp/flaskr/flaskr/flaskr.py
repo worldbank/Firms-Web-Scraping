@@ -333,13 +333,14 @@ def submit_info():
         #app.logger.info(referral_path) # verify, pay out too
 
         # Add submission to BizRegion database
-        ret = SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
-                                                                                  set__submitter_object_id=mturk_obj,
-                                                                                  set__information=request.form,
-                                                                                  set__business_name=session['business name'],
-                                                                                  set__region=session['region'])
-        if not ret:
-            raise Exception("Couldn't submit referrals to database")
+        if 'business name' in session:
+             ret = SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
+                                                                                             set__submitter_object_id=mturk_obj,
+											     set__information=request.form,
+											     set__business_name=session['business name'],
+											     set__region=session['region'])
+        # else session cookie was manipulated somehow, don't have business name, can't submit
+
 
         app.logger.info(' after attempt to submit info to SubmittedBusinessRegion collection')
 
