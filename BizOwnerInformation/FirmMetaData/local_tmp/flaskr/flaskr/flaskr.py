@@ -4,7 +4,7 @@ import string
 import pandas as pd
 from urllib.parse import urlparse
 from bson.objectid import ObjectId # to handle ObjectId weirdness w MongoEngine
-from flask import session, Response
+from flask import session, Response, jsonify
 from flask import Flask, request, session, g, redirect, url_for, abort, \
              render_template, flash
 from flask_mongoengine import MongoEngine
@@ -73,7 +73,7 @@ class SubmittedBusinessRegion(db.Document):
     are removed from the collection.
 
     Those businesses that are verified to have incorrect information are left as is, potentially
-    being selected again at random.
+    being selected again at random after being updated.
 
     This class assumes only one submission per turker (a MTurker can not submit for multiple HITs)
     """
@@ -345,6 +345,23 @@ def submit_info():
         app.logger.info(' after attempt to submit info to SubmittedBusinessRegion collection')
 
     return render_template('thank_you.html')
+
+# TODO: Test this, make into a HIT
+# implement a REST api to pull a business that needs to be verified, presented on HIT front end (AWS)
+@app.route('verify/api/v1.0/get', methods=['GET'])
+def get_verify():
+    random_business = next(SubmittedBusinessRegion._get_collection().aggregate([{'$sample':{'size':1}}]))
+    info =     {'name': random_business['business_name'],
+                'region': random_business['region'],
+                's_id': random_business['information']['My MTurk ID'],
+                'ceo': random_business['information']['CEO_Owner'],
+                'url_ceo': random_business['information']['URL_CEO_Owner'],
+                'manager': random_business['information']['Manager'],
+                'url_manager': random_business['information']['URL_Manager'],
+                'employee': random_business['information']['Employee'],
+                'url_manager': random_business['information']['URL_Employee'],
+               }
+    return jsonify(info)
 
 @app.route('/thank_you', methods=['POST'])
 def thank_you():
