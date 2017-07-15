@@ -352,5 +352,6 @@ def thank_you():
 
     return render_template('thank_you.html')
 
-if __name__ == '__main__':
-    app.run(threaded=True)
+# not needed since we're running gunicorn
+#if __name__ == '__main__':
+#    app.run(threaded=True)

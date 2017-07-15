@@ -8,6 +8,7 @@ setup(
         'flask',
         'flask-mongoengine',
         'flask-wtf',
+        'gunicorn',
         'pandas',
     ],
 )
