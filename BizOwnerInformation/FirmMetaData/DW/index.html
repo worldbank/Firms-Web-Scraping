@@ -46,9 +46,9 @@
       <hr/>
 
       <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
-		<button type="button" data-to class="btn btn-primary" data-toggle="modal" data-target="#myModal">I Want To Submit {{business.name}} Information</button>
+		<button type="button" data-to class="btn btn-primary" style="word-wrap" data-toggle="modal" data-target="#myModal">I Want To Submit Business Information</button>
         <p align=center><i>OR</i></p>
-		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">I Want To Submit A Referral(s)</button>
+		<button type="button" class="btn btn-primary" style="word-wrap" data-toggle="modal" data-target="#myModal2">I Want To Submit A Referral(s)</button>
       </div>
             
     </div>
@@ -109,7 +109,7 @@
                 <b>Step 1: Fill in <b>your</b> MTurk ID</b>
 
                   <div class="input-group"><span id="addon2" class="input-group-addon glyphicon glyphicon-certificate"></span>
-                  <input name="My MTurkID" type="text" required class="form-control" id="MyTurkID" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1">
+                  <input name="My MTurkID" type="text" required class="form-control" id="MyTurkID" placeholder="Enter your MTurk ID (Alphanumeric format)" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="100" aria-describedby="addon1">
                   </div>
 
                 <hr/>
@@ -137,9 +137,6 @@
       			</div>
 			</form>
             </p>
-			<div class="modal-footer pull-left pull-bottom">
-				<p>* You may only submit referrals once for this HIT
-			</div>
 			
 			</div>
 
@@ -158,13 +155,13 @@
 			</div>
 			<div class="modal-body">
                 <p><i>We</i> will verify your business information below against provided the link(s) and other sources. If correct, you will be awarded a bonus of <b>${{award.amt}}</b>. Those who referred you may be awarded a bonus of up to <b>${{award.max_referral_amt}}</b>.</p>
-                <p>For each role you must provide a <b><i>verification</i></b> url (web address) that can be used to confirm that the provided person is in fact in that role at {{business.name}}.
+                <p>For each role you must provide a <b><i>verification</i></b> url (web address) that can be used to confirm that the provided person is in fact in that role at {{business.name}}. If you can only find information on one role you may submit that too.
             <form id="referral" action="{{ url_for('submit_info') }}" method="POST">
 			    <div class="btn-group-vertical center-block" role="group" aria-label="Vertical button group">
                   <b>Step 1: Enter your MTurk ID</b>
 
                   <div class="input-group"><span id="info1" class="input-group-addon glyphicon glyphicon-certificate"></span>
-                      <input name="My MTurk ID" type="text" required class="form-control" id="MyTurkID" placeholder="Enter your MTurk ID" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="21" aria-describedby="addon1"> 
+                      <input name="My MTurk ID" type="text" required class="form-control" id="MyTurkID" placeholder="Enter your MTurk ID" pattern="^[a-zA-Z0-9]+$" autocomplete="on" maxlength="100" aria-describedby="addon1"> 
                   </div>
 
                   <b>Step 2: For people in charge of {{business.name}} provide information on up to 3 roles. </b>
@@ -254,9 +251,6 @@
       			</div>
 			</form>
             </p>
-			<div class="modal-footer pull-left pull-bottom">
-				<p>* You may only submit information once for this HIT
-			</div>
                 </div>
             </form>
 			</div>

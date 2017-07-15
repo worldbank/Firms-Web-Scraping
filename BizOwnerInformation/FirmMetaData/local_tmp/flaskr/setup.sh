@@ -19,11 +19,11 @@ sudo systemctl status mongodb
 sudo systemctl enable mongodb
 
 echo " ... install python-pip ..."
-sudo apt-get -y install python-pip
-pip install pip --upgrade
+sudo apt-get -y install python3-pip
+pip3 install pip3 --upgrade
 
 echo " ... installing the firm meta data web app"
-sudo -H pip install -e /home/ubuntu/Firms-Web-Scraping/BizOwnerInformation/FirmMetaData/local_tmp/flaskr/
+sudo -H pip3 install -e /home/ubuntu/Firms-Web-Scraping/BizOwnerInformation/FirmMetaData/local_tmp/flaskr/
 
 echo " ... finished setting up system ..."
 echo " ... to start the Firm Meta Data Crowd Scraping system, run ./run.sh ..."

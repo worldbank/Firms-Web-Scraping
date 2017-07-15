@@ -5,6 +5,7 @@ table {
     border-spacing: 5% auto;
 }
 
+
 .bs-callout:hover{
 	filter: brightness(75%);
 }

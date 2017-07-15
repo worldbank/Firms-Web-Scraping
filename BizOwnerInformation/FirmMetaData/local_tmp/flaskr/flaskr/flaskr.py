@@ -166,7 +166,9 @@ def validate_submission(form_items):
                 else:
                     # Otherwise we have a human name, want to verify that
                     # get rid of extra spaces w/o regexes wheewww
-                    ret = all([token.isalpha() or token in string.punctuation for token in ''.join(name)])
+					#
+					# IF this is a HIT ID we will have 
+                    ret = all([token.isalnum() or token in string.punctuation for token in ''.join(name)])
                     if not ret:
                         break
 
@@ -208,18 +210,19 @@ def hit():
         session['visit count'] += 1
     else:
         session['visit count'] = 1
+    app.logger.info(session['visit count'])
 
-    if session['visit count'] > 1:
-        # redirect to thank you page, can only do this hit once!
+    if session['visit count'] > 2:
+        # redirect to thank you page, can only do this hit once: View page, Post submission
         return render_template('thank_you.html')
 
     # If POST, then they're submitting referral information, which we handle ...
     if request.method == 'POST':
         app.logger.info(request.form)
+        app.logger.info('about to verify')
 
         if validate_referral(request.form):
-            app.logger.info('Stuff is legit')
-
+            app.logger.info('Passed Verification!')
             # So, in referral based crowdsourcing, we can view HITs as adding to the
             # social network people directly or indirectly (by referring others) searching for business information
             #
@@ -330,11 +333,13 @@ def submit_info():
         #app.logger.info(referral_path) # verify, pay out too
 
         # Add submission to BizRegion database
-        SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
+        ret = SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
                                                                                   set__submitter_object_id=mturk_obj,
                                                                                   set__information=request.form,
                                                                                   set__business_name=session['business name'],
                                                                                   set__region=session['region'])
+        if not ret:
+            raise Exception("Couldn't submit referrals to database")
 
         app.logger.info(' after attempt to submit info to SubmittedBusinessRegion collection')
 
