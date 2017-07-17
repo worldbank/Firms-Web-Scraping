@@ -26,6 +26,11 @@ app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 app.config['HIT_MAX_AWARD'] = float(os.environ['HIT_MAX_AWARD'])
 app.config['INPUT_FILE'] = os.environ['INPUT_FILE']
 
+# Target Flask app mongodb, also visble to NextML
+app.config['MONGODB_SETTINGS'] = {'port': 30000,
+                                  'host':'127.0.0.1',
+                                  'db':'flaskr_db'}
+
 db = MongoEngine(app)
 
 # Schema

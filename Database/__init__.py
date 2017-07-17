@@ -1,5 +1,6 @@
 from utils import InputTable
 from utils import WebsiteBagOfKeyphrases
+from utils import WebsiteRawTokensWithTaggedBizRegion
 from utils import GooglePlacesAccess
 from utils import JsonSink
 import zipfile
@@ -144,13 +145,18 @@ class Stage1(object):
 class MetadataVerificationStage1(object):
     """
     The metadata collection is seperately handled by the Flask webapp, however
-    The verification of that metadata is run as a NextML experiment, hence the need
+    the verification of that metadata is run as a NextML experiment, hence the need
     to run a stage 1 for metadata verification and generate features.
+
+    This is a bit differnt than the other two tasks and generates features directly
+    as well outputs a zip file directl with no intermediate file
     """
     def __init__(self,
                  in_database='flaskr_db',
                  in_collection='submitted_business_region',
                  out_zip_file='metadata.relevance.output.zip'):
+
+        self.rawtoken = WebsiteRawTokensWithTaggedBizRegion()
 
         # set up connection to the submitted metadata
         client = pymongo.MongoClient()
@@ -160,13 +166,73 @@ class MetadataVerificationStage1(object):
 
         ret = []
         for doc in collection.find():
-            output_doc = {}
-            if doc['CEO_Owner'] != '':
-                output_doc['name'] = doc['']
-                ret.append(output_doc)
-                # should call WebsiteRawTokensWithTaggedBizRegion() with role name as biz-name
-                # take website as features, zip up for output for NextML
+            # Note: this loop could be made a lot DRYer, modulize the doc role collections
+            # into a single function
+            #
+            # for each of the roles we generate features as neccesary
+            output_doc = []
+            if doc['information']['CEO_Owner'] != '':
+                ceo_doc = {}
+                ceo_doc['meta'] = {}
+                ceo_doc['meta']['features'] = ['7','8'] #self.rawtoken(url=doc['information']['URL_CEO_Owner'],
+                #                                            business_name=doc['business_name'],
+                #                                            region=doc['region'])
+                ceo_doc['target_id'] = hash(doc['information']['URL_CEO_Owner'])
+                ceo_doc['primary_description'] = doc['information']['CEO_Owner']
+                # no utc_timestamp
+                ceo_doc['business_name'] = doc['business_name']
+                ceo_doc['website'] = doc['information']['URL_CEO_Owner']
+                ceo_doc['name'] = doc['information']['CEO_Owner']
+                ceo_doc['region'] = doc['region']
+                ceo_doc['role'] = "CEO_Owner"
+                output_doc.append(ceo_doc)
 
+            if doc['information']['Manager'] != '':
+                manager_doc = {}
+                manager_doc['meta'] = {}
+
+                manager_doc['meta']['features'] = ['7', '8'] #self.rawtoken(url=doc['information']['URL_Manager'],
+                #                                            business_name=doc['business_name'],
+                #                                            region=doc['region'])
+                manager_doc['target_id'] = hash(doc['information']['URL_Manager'])
+                manager_doc['primary_description'] = doc['information']['Manager']
+                # no utc_timestamp
+                manager_doc['business_name'] = doc['business_name']
+                manager_doc['website'] = doc['information']['URL_Manager']
+                manager_doc['name'] = doc['information']['Manager']
+                manager_doc['region'] = doc['region']
+                manager_doc['role'] = "Manager"
+
+                output_doc.append(manager_doc)
+
+            if doc['information']['Employee'] != '':
+                employee_doc = {}
+                employee_doc['meta'] = {}
+
+                employee_doc['meta']['features'] = ['7','8'] #self.rawtoken(url=doc['information']['URL_employee'],
+                #                                            business_name=doc['business_name'],
+                #                                            region=doc['region'])
+                employee_doc['target_id'] = hash(doc['information']['URL_Employee'])
+                employee_doc['primary_description'] = doc['information']['Employee']
+                # no utc_timestamp
+                employee_doc['business_name'] = doc['business_name']
+                employee_doc['website'] = doc['information']['URL_Employee']
+                employee_doc['name'] = doc['information']['Employee']
+                employee_doc['region'] = doc['region']
+                employee_doc['role'] = "Employee"
+
+                output_doc.append(employee_doc)
+
+            ret.extend(output_doc)
+
+        with open('metadata.sink.json', 'w') as obj:
+            json.dump(ret, obj)
+
+        myzipfile = ZipFile('database.output.metadata.zip', 'w')
+        myzipfile.write('metadata.sink.json')
+        myzipfile.close()
+
+        os.remove('metadata.sink.json')
 
 class Stage5(object):
     """

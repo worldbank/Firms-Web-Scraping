@@ -10,7 +10,7 @@ After=network.target
 
 [Service]
 User=mongodb
-ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+ExecStart=/usr/bin/mongod --quiet --port 30000 #--config /etc/mongod.conf
 
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/mongodb.service
