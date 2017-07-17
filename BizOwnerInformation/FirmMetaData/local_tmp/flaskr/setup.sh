@@ -18,6 +18,8 @@ sudo systemctl start mongodb
 sudo systemctl status mongodb
 sudo systemctl enable mongodb
 
+# note: installing python 3 like this may not be needed if run on same system as
+# Firm Web Scraping.
 echo " ... install python-pip ..."
 sudo apt-get -y install python3-pip
 pip3 install pip3 --upgrade

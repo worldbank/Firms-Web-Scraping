@@ -167,7 +167,7 @@ def validate_submission(form_items):
                     # Otherwise we have a human name, want to verify that
                     # get rid of extra spaces w/o regexes wheewww
 					#
-					# IF this is a HIT ID we will have 
+					# IF this is a HIT ID we will have
                     ret = all([token.isalnum() or token in string.punctuation for token in ''.join(name)])
                     if not ret:
                         break
@@ -334,11 +334,23 @@ def submit_info():
 
         # Add submission to BizRegion database
         if 'business name' in session:
-             ret = SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
-                                                                                             set__submitter_object_id=mturk_obj,
-											     set__information=request.form,
-											     set__business_name=session['business name'],
-											     set__region=session['region'])
+            # this is a minor lagged feedback loop
+            # were we serve from new business region
+            # but through the MetaData Oracle we remove from new business region as well
+            #
+            # Since no fancy complex lockign is done, it is possible that we serve multiple copies
+            # of the same business region and the following may occur:
+            #   remove it from the new business region
+            #   and insert the same answer into submitted business region (paying for a second answer)
+            #
+            # But we let this edge case be in the inital implementation. This edge case is rare in that
+            # it should only come about when very few businesses are left to process, at which point
+            # the system will be halted anyway
+            ret = SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
+                                                                                            set__submitter_object_id=mturk_obj,
+											    set__information=request.form,
+											    set__business_name=session['business name'],
+											    set__region=session['region'])
         # else session cookie was manipulated somehow, don't have business name, can't submit
 
 
@@ -346,22 +358,25 @@ def submit_info():
 
     return render_template('thank_you.html')
 
-# TODO: Test this, make into a HIT
-# implement a REST api to pull a business that needs to be verified, presented on HIT front end (AWS)
-@app.route('verify/api/v1.0/get', methods=['GET'])
-def get_verify():
-    random_business = next(SubmittedBusinessRegion._get_collection().aggregate([{'$sample':{'size':1}}]))
-    info =     {'name': random_business['business_name'],
-                'region': random_business['region'],
-                's_id': random_business['information']['My MTurk ID'],
-                'ceo': random_business['information']['CEO_Owner'],
-                'url_ceo': random_business['information']['URL_CEO_Owner'],
-                'manager': random_business['information']['Manager'],
-                'url_manager': random_business['information']['URL_Manager'],
-                'employee': random_business['information']['Employee'],
-                'url_manager': random_business['information']['URL_Employee'],
-               }
-    return jsonify(info)
+## Not Implemented
+##
+## REST api to pull randomly Submitted Business information for verification against MTurk
+#@app.route('/verify/api/v1.0/get', methods=['GET'])
+#@cross_origin()
+#def get_verify():
+#    random_business = next(SubmittedBusinessRegion._get_collection().aggregate([{'$sample':{'size':1}}]))
+#    info =     {'name': random_business['business_name'],
+#                'region': random_business['region'],
+#                's_id': random_business['information']['My MTurk ID'],
+#                'ceo': random_business['information']['CEO_Owner'],
+#                'url_ceo': random_business['information']['URL_CEO_Owner'],
+#                'manager': random_business['information']['Manager'],
+#                'url_manager': random_business['information']['URL_Manager'],
+#                'employee': random_business['information']['Employee'],
+#                'url_manager': random_business['information']['URL_Employee'],
+#               }
+#    response = jsonify(info)
+#    return response
 
 @app.route('/thank_you', methods=['POST'])
 def thank_you():
