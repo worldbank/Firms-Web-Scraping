@@ -197,7 +197,10 @@ def push_biz_regions():
         NewBusinessRegion.objects(business_name=business_name).update_one(upsert=True,
                                                                                  business_name=business_name,
                                                                                  region=region)
+        #app.logger.info(business_name + ' ' + region + ' ' + str(ret))
+
 push_biz_regions()
+app.logger.info('\t Should have pushed new businesses to mongo db')
 
 @app.route('/HIT', methods=['POST', 'GET'])
 @app.route('/hit', methods=['POST', 'GET'])
@@ -212,7 +215,7 @@ def hit():
         session['visit count'] = 1
     app.logger.info(session['visit count'])
 
-    if session['visit count'] > 2:
+    if session['visit count'] > 1000: #DEBUG for unlimited sessions
         # redirect to thank you page, can only do this hit once: View page, Post submission
         return render_template('thank_you.html')
 
@@ -346,6 +349,7 @@ def submit_info():
             # But we let this edge case be in the inital implementation. This edge case is rare in that
             # it should only come about when very few businesses are left to process, at which point
             # the system will be halted anyway
+            app.logger.info('\t business name in session, submitting info')
             ret = SubmittedBusinessRegion.objects(submitter_object_id=mturk_obj).update_one(upsert=True,
                                                                                             set__submitter_object_id=mturk_obj,
 											    set__information=request.form,

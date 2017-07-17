@@ -8,3 +8,4 @@ fuzzywuzzy
 ipython
 #selenium
 fake_useragent
+pymongo

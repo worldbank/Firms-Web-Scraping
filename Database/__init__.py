@@ -6,6 +6,7 @@ import zipfile
 import json
 import os
 from zipfile import ZipFile
+import pymongo
 
 class Stage1(object):
     """
@@ -65,8 +66,8 @@ class Stage1(object):
         os.remove(self.stage1_output_final_filename)
         os.remove(self.stage1_output_intermediate_filename)
 
-         Generate features for the Product Classification task, save as zip for Active Learning training
-         and follow on processing
+        # Generate features for the Product Classification task, save as zip for Active Learning training
+        # and follow on processing
         self.product_mytable.push(getter=self.product_mytable.feature_getter,
                                   sink=self.myproductsink)
 
@@ -139,6 +140,33 @@ class Stage1(object):
 
         with open(final, 'w') as final_obj:
             json.dump(final_output, final_obj, ensure_ascii=False)
+
+class MetadataVerificationStage1(object):
+    """
+    The metadata collection is seperately handled by the Flask webapp, however
+    The verification of that metadata is run as a NextML experiment, hence the need
+    to run a stage 1 for metadata verification and generate features.
+    """
+    def __init__(self,
+                 in_database='flaskr_db',
+                 in_collection='submitted_business_region',
+                 out_zip_file='metadata.relevance.output.zip'):
+
+        # set up connection to the submitted metadata
+        client = pymongo.MongoClient()
+        db = client[in_database]
+
+        collection = db[in_collection]
+
+        ret = []
+        for doc in collection.find():
+            output_doc = {}
+            if doc['CEO_Owner'] != '':
+                output_doc['name'] = doc['']
+                ret.append(output_doc)
+                # should call WebsiteRawTokensWithTaggedBizRegion() with role name as biz-name
+                # take website as features, zip up for output for NextML
+
 
 class Stage5(object):
     """
