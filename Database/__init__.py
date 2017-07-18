@@ -175,7 +175,7 @@ class MetadataVerificationStage1(object):
                 ceo_doc = {}
                 ceo_doc['meta'] = {}
                 ceo_doc['meta']['features'] = ['7','8'] #self.rawtoken(url=doc['information']['URL_CEO_Owner'],
-                #                                            business_name=doc['business_name'],
+                #                                            business_name=doc['information']['CEO_Owner'],
                 #                                            region=doc['region'])
                 ceo_doc['target_id'] = hash(doc['information']['URL_CEO_Owner'])
                 ceo_doc['primary_description'] = doc['information']['CEO_Owner']
@@ -192,7 +192,7 @@ class MetadataVerificationStage1(object):
                 manager_doc['meta'] = {}
 
                 manager_doc['meta']['features'] = ['7', '8'] #self.rawtoken(url=doc['information']['URL_Manager'],
-                #                                            business_name=doc['business_name'],
+                #                                            business_name=doc['information']['Manager'],
                 #                                            region=doc['region'])
                 manager_doc['target_id'] = hash(doc['information']['URL_Manager'])
                 manager_doc['primary_description'] = doc['information']['Manager']
@@ -210,7 +210,7 @@ class MetadataVerificationStage1(object):
                 employee_doc['meta'] = {}
 
                 employee_doc['meta']['features'] = ['7','8'] #self.rawtoken(url=doc['information']['URL_employee'],
-                #                                            business_name=doc['business_name'],
+                #                                            business_name=doc['information']['Employee'],
                 #                                            region=doc['region'])
                 employee_doc['target_id'] = hash(doc['information']['URL_Employee'])
                 employee_doc['primary_description'] = doc['information']['Employee']
