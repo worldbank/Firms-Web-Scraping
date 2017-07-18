@@ -1,4 +1,4 @@
-echo "[Must be run with sudo!]"
+echo "[Must be run with sudo! Assumes Docker is installed as well]"
 echo "... installing mongo db ..."
 
 # Note: The NextML system (under Docker) needs to communicate with Mongo DB
@@ -7,11 +7,7 @@ echo "... installing mongo db ..."
 # This requires that the containers be able to "see" Mongo DB. The NextML containers
 # live on the `docker0` network (in the host). So, on the host, Mongo DB needs to
 # also listen on docker0 (172.17.0.0 on my system).
-# see: https://stackoverflow.com/questions/29109134/how-to-set-mongod-conf-bind-ip-with-multiple-ip-address
 # see: https://docs.mongodb.com/manual/reference/configuration-options/#net-options
-#
-# for binding mongo db to multiple databases, this needs to be set in /etc/mongd.conf
-# currently setting this up (throwing code=exited, status=48)
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
 echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
 sudo apt-get update
@@ -26,6 +22,13 @@ ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
 
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/mongodb.service
+
+# Modify /etc/mongod.conf to include the docker0 network so
+# that NextML can also modify the database (primarily for
+# Metadata verification)
+export FLASK_IP=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+') # gets docker0 ip
+sudo sed -i -e 's|127.0.0.1|'"127.0.0.1,$FLASK_IP"'|g' /etc/mongod.conf
+
 sudo systemctl start mongodb
 sudo systemctl status mongodb
 sudo systemctl enable mongodb
