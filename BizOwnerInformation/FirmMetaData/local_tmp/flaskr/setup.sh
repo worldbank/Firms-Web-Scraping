@@ -1,5 +1,17 @@
 echo "[Must be run with sudo!]"
 echo "... installing mongo db ..."
+
+# Note: The NextML system (under Docker) needs to communicate with Mongo DB
+# so that we can remove and add verified business submissions.
+#
+# This requires that the containers be able to "see" Mongo DB. The NextML containers
+# live on the `docker0` network (in the host). So, on the host, Mongo DB needs to
+# also listen on docker0 (172.17.0.0 on my system).
+# see: https://stackoverflow.com/questions/29109134/how-to-set-mongod-conf-bind-ip-with-multiple-ip-address
+# see: https://docs.mongodb.com/manual/reference/configuration-options/#net-options
+#
+# for binding mongo db to multiple databases, this needs to be set in /etc/mongd.conf
+# currently setting this up (throwing code=exited, status=48)
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
 echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
 sudo apt-get update
@@ -10,7 +22,7 @@ After=network.target
 
 [Service]
 User=mongodb
-ExecStart=/usr/bin/mongod --quiet --port 30000 #--config /etc/mongod.conf
+ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
 
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/mongodb.service
