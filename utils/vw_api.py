@@ -1,6 +1,15 @@
-#import docker # would've been nice but no docker-compose like functionality
+"""VWAPI
+
+This is a utility class for interacting with Vowpal Wabbit (VW). It
+includes functionality for getting predicted responses in bulk,
+converting examples to the VW format.
+
+This class was designed to run in both Python 2 and Python 3.
+"""
+
 import wabbit_wappa
 import socket
+
 
 # Provide access to VWAPI
 class VWAPI(object):
@@ -10,7 +19,7 @@ class VWAPI(object):
 
     Example Use:
     vw = VWAPI()
-    res = vw.get_bulk_responses([[1,2,3], [3,4,5^]])
+    res = vw.get_bulk_responses([[1,2,3], [3,4,5]])
     print str(res[0]) + " is the first response"
     if res[0].importance > 0:
         print "This response has some importances attached to it"
@@ -60,8 +69,6 @@ class VWAPI(object):
             # so vw can actually return one or multiple examples per tcp response
             # ... we need to identify how many example were returned and decrement
             # appropriately. We trim the trailing new line to more easily count.
-            #num_examples = num_examples - len(chunk[:-1].split('\n'))
-            #num_examples = num_examples - len(chunk.decode('utf-8')[:-1].split('\n'))
             num_examples = num_examples - len(chunk_list)
 
         # VW returns a new line on last line but we .split() raw responses

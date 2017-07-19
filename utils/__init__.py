@@ -1,3 +1,33 @@
+"""__init__.py
+
+This is a large set of utility functions that exist to make the main
+task classes, like ExtractProducts, WebsiteRelevanc, much shorter.
+
+InputTable accepts an input csv and then runs a series of 'featurizers'
+against the .csv rows in order to generate features for oracle prediction
+and learning.
+
+WebsiteRawTokensWithTaggedBizRegion is a class for extracting raw tokens
+from a website and replacing fuzzy references to the provided business name, region
+with a fixed token as well as that token's degree of fuzzy matching. This degree
+of matching is limited to 90 - 100. These are featurs that vowpal wabbit learns from.
+There is a github issue to actually only retain the fuzzy tokens and drop the other
+raw tokens as they may not add much to the learning task. This class is used for
+the WebsiteRelevance task.
+
+WebsiteBagOfKeyphrases is a class that runs the website through a textacy keyphrase
+extraction process. This process outputs canditate products that are then analyzed
+by the oracle as being a product or not.
+
+GooglePlacesAccess is a wrapper around the googleplaces class, for obtaining suggested
+websites for a given bussines.
+
+JsonSink is an extended class from `logging` where it allows mutlti threaded code to
+write to the same output file in a sequential manner. This class was made to allow
+future multi threaded code write to the same data source. It outputs an intermediate
+(row by row) set of json results that is fixed up into final form by another class.
+"""
+
 from googleplaces import GooglePlaces, types, lang
 from ApiKey import ApiKeys
 import utils # for vwapi

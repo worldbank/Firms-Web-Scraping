@@ -1,3 +1,18 @@
+"""MassiveCrowdSourcing
+
+This is an implementation of the paper below. This class would be used
+if any MTurkers referred another MTurker and we needed to determine
+the required pay out. It also provides payment amounts for a fixed budget.
+
+This code is currently unused and isn't as required due to MTurkers being
+mostly anonymous and unable to easily refer other MTurkers; most of the
+crowdsourcing is done as direct firm metadata submissions and not referred ones.
+
+However, it may be possible to change the requirement for a MTurk ID to just
+providing a unique "handle" known to you and the other MTurker; this way they
+would not have to share MTurk (Worker) IDs and can still referr others.
+"""
+
 class MassiveCrowdSourcing(object):
     """
     An implementation of "Verification in Referral-Based Crowdsourcing,"
