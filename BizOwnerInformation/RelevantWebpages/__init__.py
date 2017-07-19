@@ -1,3 +1,11 @@
+"""RelevantWebpages/ExtractRelevantWebpages
+
+ExtractRelevantWebpages uses the oracle to filter out
+potentially relevant webpages from the Database output stage.
+It writes these relevant webpages as `relevance.output.zip`
+
+"""
+
 from utils import vw_api
 from zipfile import ZipFile
 import os
