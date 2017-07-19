@@ -1,3 +1,19 @@
+"""Database/__init__.py
+
+This module contains database (stage 1, stage 5) related functionality.
+Eseentially it produces output for the metadata, product and website relevance
+NextML experiments and for the vowpal wabbit oracle to work with.
+
+Stage1 works with the output of JsonSink (in utils) by fixing up the json
+formatted data such that NextML can work with it.
+
+MetadataVerificationStage1 does similiary except it uses no intermediate files.
+
+
+Stage5 class is responsible for collecting the product, firm metadata and producing
+an output file.
+"""
+
 from utils import InputTable
 from utils import WebsiteBagOfKeyphrases
 from utils import WebsiteRawTokensWithTaggedBizRegion
@@ -242,6 +258,13 @@ class Stage5(object):
 
     Businesses may be listed more than once but their product and/or ownership
     informatino may be different
+
+    Essentially, all that needs to be done is read in the product output, the metadata output
+    do an inner join against business name and region. This will leave a row per role as well
+    as duplicated products.
+
+    If you don't want a row per role you can roll up the the roles into a single line using
+    Pandas.
     """
     def __init__(self):
         pass

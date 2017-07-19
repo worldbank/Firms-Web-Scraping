@@ -1,3 +1,14 @@
+"""ExtractProducts/__init__.py
+
+The ExtractProducts class leverages the products oracle to filter
+a list of potential products. The list of potential products is output
+by the Database class.
+
+note: there is a github issue relating to verifying that the output file
+is as expected, since this was an implementation item left aside to work
+on more pressing aspects of the system at the time.
+"""
+
 from utils import vw_api
 from zipfile import ZipFile
 import pandas
