@@ -40,7 +40,9 @@ sudo apt-get -y install python3-pip
 pip3 install pip3 --upgrade
 
 echo " ... installing the firm meta data web app"
-sudo -H pip3 install -e /home/ubuntu/Firms-Web-Scraping/BizOwnerInformation/FirmMetaData/local_tmp/flaskr/
+# note, not entirely sure what path to use so pip can pick up this webapp but it's either
+# this directory or the one below
+sudo -H pip3 install -e .
 
 echo " ... finished setting up system ..."
 echo " ... to start the Firm Meta Data Crowd Scraping system, run ./run.sh ..."

@@ -1,3 +1,10 @@
+"""
+ExtractSubmittedMetadata is a convienence class for collecting verified
+good firm metadata on roles. Writing out to a .csv (e.g., firm metadata output)
+is not implemented to date. This is related to the github issue
+on Stage 5
+"""
+
 from zipfile import ZipFile
 import os
 import json
