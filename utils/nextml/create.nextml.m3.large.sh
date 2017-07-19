@@ -7,6 +7,10 @@
 # I think the S3 bucket can be in any region
 #
 # This script should help take care of above notes
+#
+# Note: This script is unused, provided as a convience script for launching NextML
+# in cloud mode, rather than the typically used local mode. The EC2 API keys
+# must be set to valid keys.
 
 echo "Launching a new NextML instance onto AWS EC2. Press Ctrl-c at any time to quit."
 

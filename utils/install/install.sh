@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This is a convience script for installing the libraries needed to stand up the
+# entire system. It is somewhat redundant because this script is checked out from
+# a repository yet also tries to check out those same repositories.
+
 # installs basic libraries needed, may take quite a while
 echo 'We have to install several libraries: docker, docker-compose, git, phantomjs, NextML and a Python 3 virtual environment ...'
 read -p "Do you want to run this script? Y/N " -n 1 -r
